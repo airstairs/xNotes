@@ -1,0 +1,20 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml",
+      "selection": {
+        "end": {
+          "column": 29,
+          "index": 194,
+          "line": 4
+        },
+        "start": {
+          "column": 29,
+          "index": 194,
+          "line": 4
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml"
+}

@@ -1,0 +1,25 @@
+R_DEF: Internal format may change without notice
+local
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+id btnAddPage
+id btnBlack
+id btnBlue
+id btnNextPage
+id btnNotebook1
+id btnNotebook2
+id btnPrevPage
+id btnRed
+id btnThick
+id btnThin
+id drawingCanvas
+id txtPageIndicator
+layout activity_main
+layout activity_note_editor
+mipmap ic_launcher
+mipmap ic_launcher_round
+string app_name
+style AppTheme
+style Base.AppTheme
+xml backup_rules
+xml data_extraction_rules
