@@ -1,2 +1,6 @@
-# xNotes
-wow! &lt;3
+# xNotes  
+
+
+<hr>  
+
+![icon](icon.png)

@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-23:12
-INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-23:12
-INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-23:12
-INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-23:12
+ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-24:12
+INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-24:12
+INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-24:12
+INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:1-24:12
 MERGED from [androidx.databinding:viewbinding:8.13.0] /data/user/0/com.tom.rv2ide/files/home/.gradle/caches/9.0.0/transforms/d6d52c687587b8e35954d2d37864f0b4/transformed/viewbinding-8.13.0/AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.material:material:1.13.0] /data/user/0/com.tom.rv2ide/files/home/.gradle/caches/9.0.0/transforms/a8aad1d12255982d7dcd6965a6b96acf/transformed/material-1.13.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.2.1] /data/user/0/com.tom.rv2ide/files/home/.gradle/caches/9.0.0/transforms/82b12c1a216e3bc67094035f89f80ec5/transformed/constraintlayout-2.2.1/AndroidManifest.xml:2:1-9:12
@@ -53,8 +53,8 @@ MERGED from [androidx.core:core-viewtree:1.0.0] /data/user/0/com.tom.rv2ide/file
 	xmlns:android
 		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:1:11-69
 application
-ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:2:5-22:19
-INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:2:5-22:19
+ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:2:5-23:19
+INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:2:5-23:19
 MERGED from [com.google.android.material:material:1.13.0] /data/user/0/com.tom.rv2ide/files/home/.gradle/caches/9.0.0/transforms/a8aad1d12255982d7dcd6965a6b96acf/transformed/material-1.13.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.13.0] /data/user/0/com.tom.rv2ide/files/home/.gradle/caches/9.0.0/transforms/a8aad1d12255982d7dcd6965a6b96acf/transformed/material-1.13.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.2.1] /data/user/0/com.tom.rv2ide/files/home/.gradle/caches/9.0.0/transforms/82b12c1a216e3bc67094035f89f80ec5/transformed/constraintlayout-2.2.1/AndroidManifest.xml:7:5-20
@@ -76,41 +76,43 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /data/user/
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.17.0] /data/user/0/com.tom.rv2ide/files/home/.gradle/caches/9.0.0/transforms/364a2247c064f678d92175a50b54c0f0/transformed/core-1.17.0/AndroidManifest.xml:28:18-86
 	android:label
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:5:9-31
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:6:9-31
+	android:roundIcon
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:5:9-50
 	android:icon
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:4:9-43
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:4:9-45
 	android:allowBackup
 		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:3:9-35
 	android:theme
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:6:9-65
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:7:9-65
 activity#com.xthan.xnotes.MainActivity
-ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:8:9-14:20
+ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:9:9-15:20
 	android:exported
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:9:13-36
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:10:13-36
 	android:name
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:8:19-47
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:9:19-47
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:10:13-13:29
+ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:11:13-14:29
 action#android.intent.action.MAIN
-ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:11:17-69
+ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:12:17-69
 	android:name
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:11:25-66
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:12:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:12:17-77
+ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:13:17-77
 	android:name
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:12:27-74
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:13:27-74
 activity#com.xthan.xnotes.NoteEditorActivity
-ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:16:9-20:40
+ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:17:9-21:40
 	android:exported
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:20:13-37
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:21:13-37
 	android:resizeableActivity
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:19:13-46
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:20:13-46
 	android:configChanges
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:18:13-74
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:19:13-74
 	android:documentLaunchMode
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:17:13-48
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:18:13-48
 	android:name
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:16:19-53
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:17:19-53
 uses-sdk
 INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml
