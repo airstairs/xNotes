@@ -8,7 +8,6 @@ id btnBlack
 id btnBlue
 id btnNextPage
 id btnNotebook1
-id btnNotebook2
 id btnPrevPage
 id btnRed
 id btnThick

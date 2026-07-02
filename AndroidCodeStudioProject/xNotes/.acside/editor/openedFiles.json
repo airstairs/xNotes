@@ -4,17 +4,77 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml",
       "selection": {
         "end": {
-          "column": 22,
-          "index": 189,
-          "line": 4
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/layout/activity_main.xml",
+      "selection": {
+        "end": {
+          "column": 49,
+          "index": 717,
+          "line": 20
         },
         "start": {
           "column": 22,
-          "index": 189,
-          "line": 4
+          "index": 690,
+          "line": 20
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/layout/activity_note_editor.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/MainActivity.kt",
+      "selection": {
+        "end": {
+          "column": 32,
+          "index": 500,
+          "line": 15
+        },
+        "start": {
+          "column": 32,
+          "index": 500,
+          "line": 15
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/NoteEditorActivity.kt",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
         }
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/NoteEditorActivity.kt"
 }

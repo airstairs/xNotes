@@ -22,14 +22,9 @@ public final class ActivityMainBinding implements ViewBinding {
   @NonNull
   public final Button btnNotebook1;
 
-  @NonNull
-  public final Button btnNotebook2;
-
-  private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnNotebook1,
-      @NonNull Button btnNotebook2) {
+  private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnNotebook1) {
     this.rootView = rootView;
     this.btnNotebook1 = btnNotebook1;
-    this.btnNotebook2 = btnNotebook2;
   }
 
   @Override
@@ -65,13 +60,7 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.btnNotebook2;
-      Button btnNotebook2 = ViewBindings.findChildViewById(rootView, id);
-      if (btnNotebook2 == null) {
-        break missingId;
-      }
-
-      return new ActivityMainBinding((LinearLayout) rootView, btnNotebook1, btnNotebook2);
+      return new ActivityMainBinding((LinearLayout) rootView, btnNotebook1);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

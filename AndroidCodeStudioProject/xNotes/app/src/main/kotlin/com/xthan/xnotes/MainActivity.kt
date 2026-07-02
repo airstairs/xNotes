@@ -13,12 +13,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<Button>(R.id.btnNotebook1).setOnClickListener {
-            openNotebook("alpha", "Notebook Alpha")
+            openNotebook("xNotes", "Open New xNotes scratch pad")
         }
 
+        /*
         findViewById<Button>(R.id.btnNotebook2).setOnClickListener {
             openNotebook("beta", "Notebook Beta")
         }
+        */
     }
 
     private fun openNotebook(id: String, title: String) {

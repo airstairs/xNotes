@@ -18,12 +18,13 @@
         android:id="@+id/btnNotebook1"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Open Notebook Alpha"
+        android:text="Open New xNotes scratch pad"
         android:layout_marginBottom="16dp"/>
-
+<!--
     <Button
         android:id="@+id/btnNotebook2"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:text="Open Notebook Beta" />
+        /-->
 </LinearLayout>

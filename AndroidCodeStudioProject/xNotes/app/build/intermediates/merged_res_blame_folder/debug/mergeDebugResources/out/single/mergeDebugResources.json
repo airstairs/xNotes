@@ -24,16 +24,12 @@
         "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/drawable/ic_launcher_background.xml"
     },
     {
-        "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
-        "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/mipmap-anydpi-v26/ic_launcher_round.xml"
-    },
-    {
         "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/xml_backup_rules.xml.flat",
         "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/xml/backup_rules.xml"
     },
     {
-        "merged": "com.xthan.xnotes.app-debug-35:/drawable_ic_launcher.png.flat",
-        "source": "com.xthan.xnotes.app-main-37:/drawable/ic_launcher.png"
+        "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/mipmap-anydpi-v26/ic_launcher_round.xml"
     },
     {
         "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/drawable-anydpi-v24_ic_launcher_foreground.xml.flat",
@@ -42,6 +38,10 @@
     {
         "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/mipmap-xhdpi_ic_launcher_round.webp.flat",
         "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.xthan.xnotes.app-debug-35:/layout_activity_main.xml.flat",
+        "source": "com.xthan.xnotes.app-main-37:/layout/activity_main.xml"
     },
     {
         "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/mipmap-mdpi_ic_launcher.webp.flat",
@@ -56,6 +56,10 @@
         "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/mipmap-hdpi/ic_launcher_round.webp"
     },
     {
+        "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/drawable_ic_launcher.png.flat",
+        "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/drawable/ic_launcher.png"
+    },
+    {
         "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/mipmap-xhdpi_ic_launcher.webp.flat",
         "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/mipmap-xhdpi/ic_launcher.webp"
     },
@@ -64,12 +68,12 @@
         "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/layout/activity_main.xml"
     },
     {
-        "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/layout_activity_note_editor.xml.flat",
-        "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/layout/activity_note_editor.xml"
-    },
-    {
         "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/mipmap-anydpi-v26_ic_launcher.xml.flat",
         "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/layout_activity_note_editor.xml.flat",
+        "source": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-main-37:/layout/activity_note_editor.xml"
     },
     {
         "merged": "/data/user/0/com.tom.rv2ide/files/home/.gradle/daemon/9.0.0/com.xthan.xnotes.app-debug-35:/mipmap-mdpi_ic_launcher_round.webp.flat",
