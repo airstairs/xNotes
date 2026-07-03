@@ -6,6 +6,10 @@ drawable ic_launcher_foreground
 id btnAddPage
 id btnBlack
 id btnBlue
+id btnEraser
+id btnExportAll
+id btnImportAll
+id btnMassDelete
 id btnNextPage
 id btnNotebook1
 id btnPrevPage
@@ -13,6 +17,7 @@ id btnRed
 id btnThick
 id btnThin
 id drawingCanvas
+id savesContainer
 id txtPageIndicator
 layout activity_main
 layout activity_note_editor

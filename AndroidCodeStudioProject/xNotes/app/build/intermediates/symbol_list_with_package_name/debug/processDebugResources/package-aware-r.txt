@@ -3760,6 +3760,10 @@ id bounceStart
 id btnAddPage
 id btnBlack
 id btnBlue
+id btnEraser
+id btnExportAll
+id btnImportAll
+id btnMassDelete
 id btnNextPage
 id btnNotebook1
 id btnPrevPage
@@ -4047,6 +4051,7 @@ id rounded
 id row_index_key
 id save_non_transition_alpha
 id save_overlay_view
+id savesContainer
 id sawtooth
 id scale
 id screen

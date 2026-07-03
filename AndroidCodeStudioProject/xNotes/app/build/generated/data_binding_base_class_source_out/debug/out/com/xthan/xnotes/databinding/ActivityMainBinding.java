@@ -20,11 +20,29 @@ public final class ActivityMainBinding implements ViewBinding {
   private final LinearLayout rootView;
 
   @NonNull
+  public final Button btnExportAll;
+
+  @NonNull
+  public final Button btnImportAll;
+
+  @NonNull
+  public final Button btnMassDelete;
+
+  @NonNull
   public final Button btnNotebook1;
 
-  private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnNotebook1) {
+  @NonNull
+  public final LinearLayout savesContainer;
+
+  private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnExportAll,
+      @NonNull Button btnImportAll, @NonNull Button btnMassDelete, @NonNull Button btnNotebook1,
+      @NonNull LinearLayout savesContainer) {
     this.rootView = rootView;
+    this.btnExportAll = btnExportAll;
+    this.btnImportAll = btnImportAll;
+    this.btnMassDelete = btnMassDelete;
     this.btnNotebook1 = btnNotebook1;
+    this.savesContainer = savesContainer;
   }
 
   @Override
@@ -54,13 +72,38 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.btnExportAll;
+      Button btnExportAll = ViewBindings.findChildViewById(rootView, id);
+      if (btnExportAll == null) {
+        break missingId;
+      }
+
+      id = R.id.btnImportAll;
+      Button btnImportAll = ViewBindings.findChildViewById(rootView, id);
+      if (btnImportAll == null) {
+        break missingId;
+      }
+
+      id = R.id.btnMassDelete;
+      Button btnMassDelete = ViewBindings.findChildViewById(rootView, id);
+      if (btnMassDelete == null) {
+        break missingId;
+      }
+
       id = R.id.btnNotebook1;
       Button btnNotebook1 = ViewBindings.findChildViewById(rootView, id);
       if (btnNotebook1 == null) {
         break missingId;
       }
 
-      return new ActivityMainBinding((LinearLayout) rootView, btnNotebook1);
+      id = R.id.savesContainer;
+      LinearLayout savesContainer = ViewBindings.findChildViewById(rootView, id);
+      if (savesContainer == null) {
+        break missingId;
+      }
+
+      return new ActivityMainBinding((LinearLayout) rootView, btnExportAll, btnImportAll,
+          btnMassDelete, btnNotebook1, savesContainer);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
