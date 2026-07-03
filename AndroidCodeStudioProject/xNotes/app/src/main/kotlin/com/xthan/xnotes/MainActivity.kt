@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<Button>(R.id.btnNotebook1).setOnClickListener {
-            openNotebook("xNotes", "Open New xNotes scratch pad")
+            openNotebook("xNotes", "Open New Card")
         }
 
         /*

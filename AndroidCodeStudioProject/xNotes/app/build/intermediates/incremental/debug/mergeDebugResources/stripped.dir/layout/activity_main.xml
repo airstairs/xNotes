@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="My Notebooks"
+        android:text="xNotes"
         android:textSize="28sp"
         android:textStyle="bold"
         android:layout_marginBottom="32dp"/>
@@ -18,7 +18,7 @@
         android:id="@+id/btnNotebook1"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Open New xNotes scratch pad"
+        android:text="Open New Card"
         android:layout_marginBottom="16dp"/>
 <!--
     <Button
