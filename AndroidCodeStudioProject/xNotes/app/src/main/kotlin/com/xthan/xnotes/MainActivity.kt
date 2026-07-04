@@ -11,6 +11,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
+
+
+
+
+
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -114,6 +124,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    
+
     private fun showExportFileNameDialog() {
         val input = EditText(this).apply { hint = "Backup Name" }
         AlertDialog.Builder(this)
@@ -123,29 +135,59 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Export") { _, _ ->
                 var fileName = input.text.toString().trim()
                 if (fileName.isEmpty()) fileName = "Backup"
-                val fullFileName = "$fileName.xNotesBackup"
+                
+                // Force the explicit custom file extension
+                if (!fileName.endsWith(".xNotesBackup")) {
+                    fileName = "$fileName.xNotesBackup"
+                }
                 
                 val combinedData = StringBuilder()
                 val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
                 val savedList = prefs.getStringSet("notes_list", emptySet()) ?: emptySet()
-
+    
                 for ((index, noteName) in savedList.withIndex()) {
                     if (index > 0) combinedData.append("##NOTE_BREAK##")
                     val noteData = prefs.getString("note_data_$noteName", "") ?: ""
                     combinedData.append("$noteName##NOTE_SPLIT##$noteData")
                 }
-
-                val sendIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, combinedData.toString())
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TITLE, fullFileName)
+    
+                try {
+                    // Write data to a physical file inside the app cache directory
+                    val exportDir = File(cacheDir, "exports")
+                    if (!exportDir.exists()) exportDir.mkdirs()
+                    
+                    val outputFile = File(exportDir, fileName)
+                    FileOutputStream(outputFile).use { writer ->
+                        writer.write(combinedData.toString().toByteArray())
+                    }
+    
+                    // Generate a secure secure content URI via our FileProvider configuration
+                    val fileUri: Uri = FileProvider.getUriForFile(
+                        this,
+                        "com.xthan.xnotes.fileprovider",
+                        outputFile
+                    )
+    
+                    // Fire an ACTION_SEND intent passing the explicit binary file stream stream uri
+                    val sendIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_STREAM, fileUri)
+                        type = "application/octet-stream" // Signals to system that this is a raw document file
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    
+                    startActivity(Intent.createChooser(sendIntent, "Save xNotes System State File:"))
+                    
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Local Export Creation Failed", Toast.LENGTH_SHORT).show()
+                    e.printStackTrace()
                 }
-                startActivity(Intent.createChooser(sendIntent, "Share xNotes System State File:"))
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
+
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intentData: Intent?) {
         super.onActivityResult(requestCode, resultCode, intentData)
