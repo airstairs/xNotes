@@ -5,7 +5,10 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
+import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 class NoteEditorActivity : AppCompatActivity() {
@@ -31,34 +34,71 @@ class NoteEditorActivity : AppCompatActivity() {
 
         canvasView.onStrokeAdded = { autoSaveData() }
 
-        val btnBlack = findViewById<Button>(R.id.btnBlack)
-        val btnRed = findViewById<Button>(R.id.btnRed)
-        val btnBlue = findViewById<Button>(R.id.btnBlue)
-        val btnEraser = findViewById<Button>(R.id.btnEraser)
+        // Setup Dropdown Popup Menu for Tools & Colors
+        val btnToolsMenu = findViewById<Button>(R.id.btnToolsMenu)
+        btnToolsMenu.setOnClickListener { view ->
+            val popup = PopupMenu(this, view)
+            popup.menu.add(0, 1, 0, "Black Pencil")
+            popup.menu.add(0, 2, 0, "Red Pencil")
+            popup.menu.add(0, 3, 0, "Blue Pencil")
+            popup.menu.add(0, 4, 0, "Eraser Mode")
+            
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        canvasView.isEraserMode = false
+                        canvasView.currentPenColor = Color.BLACK
+                        btnToolsMenu.text = "✏️ Black"
+                    }
+                    2 -> {
+                        canvasView.isEraserMode = false
+                        canvasView.currentPenColor = Color.RED
+                        btnToolsMenu.text = "✏️ Red"
+                    }
+                    3 -> {
+                        canvasView.isEraserMode = false
+                        canvasView.currentPenColor = Color.BLUE
+                        btnToolsMenu.text = "✏️ Blue"
+                    }
+                    4 -> {
+                        canvasView.isEraserMode = true
+                        btnToolsMenu.text = "🧼 Eraser"
+                    }
+                }
+                true
+            }
+            popup.show()
+        }
 
-        btnBlack.setOnClickListener {
-            canvasView.isEraserMode = false
-            canvasView.currentPenColor = Color.BLACK
-            updateModeButtons(btnBlack, btnRed, btnBlue, btnEraser)
-        }
-        btnRed.setOnClickListener {
-            canvasView.isEraserMode = false
-            canvasView.currentPenColor = Color.RED
-            updateModeButtons(btnBlack, btnRed, btnBlue, btnEraser)
-        }
-        btnBlue.setOnClickListener {
-            canvasView.isEraserMode = false
-            canvasView.currentPenColor = Color.BLUE
-            updateModeButtons(btnBlack, btnRed, btnBlue, btnEraser)
-        }
-        btnEraser.setOnClickListener {
-            canvasView.isEraserMode = true
-            updateModeButtons(btnBlack, btnRed, btnBlue, btnEraser)
+        // Setup Dropdown Popup Menu for Stroke Size Thickness profiles
+        val btnSizesMenu = findViewById<Button>(R.id.btnSizesMenu)
+        btnSizesMenu.setOnClickListener { view ->
+            val popup = PopupMenu(this, view)
+            popup.menu.add(0, 1, 0, "Extra Thin (2px)")
+            popup.menu.add(0, 2, 0, "Thin (5px)")
+            popup.menu.add(0, 3, 0, "Thick (20px)")
+            
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        canvasView.currentPenSize = 2f
+                        btnSizesMenu.text = "📐 2px"
+                    }
+                    2 -> {
+                        canvasView.currentPenSize = 5f
+                        btnSizesMenu.text = "📐 5px"
+                    }
+                    3 -> {
+                        canvasView.currentPenSize = 20f
+                        btnSizesMenu.text = "📐 20px"
+                    }
+                }
+                true
+            }
+            popup.show()
         }
 
-        findViewById<Button>(R.id.btnThin).setOnClickListener { canvasView.currentPenSize = 5f }
-        findViewById<Button>(R.id.btnThick).setOnClickListener { canvasView.currentPenSize = 20f }
-
+        // Base Navigation triggers
         findViewById<Button>(R.id.btnAddPage).setOnClickListener {
             canvasView.addPage()
             updatePageIndicator()
@@ -71,15 +111,34 @@ class NoteEditorActivity : AppCompatActivity() {
             if (canvasView.nextPage()) updatePageIndicator()
         }
 
-        updatePageIndicator()
-        updateModeButtons(btnBlack, btnRed, btnBlue, btnEraser)
-    }
+        // Destructive safe page removal operation block
+        findViewById<Button>(R.id.btnDeletePage).setOnClickListener {
+            val targetIdx = canvasView.currentPageIndex
+            AlertDialog.Builder(this)
+                .setTitle("Delete Page Confirmation")
+                .setMessage("Are you entirely sure you want to completely erase Page ${targetIdx + 1}? This action cannot be reversed.")
+                .setPositiveButton("Delete Permanently") { _, _ ->
+                    if (canvasView.getPageCount() <= 1) {
+                        // Reset everything back to blank if clearing down out of a single layout
+                        canvasView.pages[0].clear()
+                        canvasView.resetZoomAndPan()
+                    } else {
+                        canvasView.pages.removeAt(targetIdx)
+                        // Adjust index back down safely so viewport retains placement tracking bounds
+                        if (canvasView.currentPageIndex >= canvasView.getPageCount()) {
+                            canvasView.currentPageIndex = canvasView.getPageCount() - 1
+                        }
+                        canvasView.resetZoomAndPan()
+                    }
+                    updatePageIndicator()
+                    autoSaveData()
+                    Toast.makeText(this, "Page cleared successfully", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
 
-    private fun updateModeButtons(b: Button, r: Button, bl: Button, e: Button) {
-        b.setBackgroundColor(if (!canvasView.isEraserMode && canvasView.currentPenColor == Color.BLACK) Color.LTGRAY else Color.TRANSPARENT)
-        r.setBackgroundColor(if (!canvasView.isEraserMode && canvasView.currentPenColor == Color.RED) Color.LTGRAY else Color.TRANSPARENT)
-        bl.setBackgroundColor(if (!canvasView.isEraserMode && canvasView.currentPenColor == Color.BLUE) Color.LTGRAY else Color.TRANSPARENT)
-        e.setBackgroundColor(if (canvasView.isEraserMode) Color.DKGRAY else Color.TRANSPARENT)
+        updatePageIndicator()
     }
 
     private fun autoSaveData() {
@@ -95,6 +154,6 @@ class NoteEditorActivity : AppCompatActivity() {
     private fun updatePageIndicator() {
         val current = canvasView.currentPageIndex + 1
         val total = canvasView.getPageCount()
-        pageIndicator.text = "Page $current/$total"
+        pageIndicator.text = "$current/$total"
     }
 }

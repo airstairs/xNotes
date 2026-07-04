@@ -25,13 +25,7 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   public final Button btnAddPage;
 
   @NonNull
-  public final Button btnBlack;
-
-  @NonNull
-  public final Button btnBlue;
-
-  @NonNull
-  public final Button btnEraser;
+  public final Button btnDeletePage;
 
   @NonNull
   public final Button btnNextPage;
@@ -40,13 +34,10 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   public final Button btnPrevPage;
 
   @NonNull
-  public final Button btnRed;
+  public final Button btnSizesMenu;
 
   @NonNull
-  public final Button btnThick;
-
-  @NonNull
-  public final Button btnThin;
+  public final Button btnToolsMenu;
 
   @NonNull
   public final DrawingCanvasView drawingCanvas;
@@ -55,20 +46,16 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   public final TextView txtPageIndicator;
 
   private ActivityNoteEditorBinding(@NonNull LinearLayout rootView, @NonNull Button btnAddPage,
-      @NonNull Button btnBlack, @NonNull Button btnBlue, @NonNull Button btnEraser,
-      @NonNull Button btnNextPage, @NonNull Button btnPrevPage, @NonNull Button btnRed,
-      @NonNull Button btnThick, @NonNull Button btnThin, @NonNull DrawingCanvasView drawingCanvas,
-      @NonNull TextView txtPageIndicator) {
+      @NonNull Button btnDeletePage, @NonNull Button btnNextPage, @NonNull Button btnPrevPage,
+      @NonNull Button btnSizesMenu, @NonNull Button btnToolsMenu,
+      @NonNull DrawingCanvasView drawingCanvas, @NonNull TextView txtPageIndicator) {
     this.rootView = rootView;
     this.btnAddPage = btnAddPage;
-    this.btnBlack = btnBlack;
-    this.btnBlue = btnBlue;
-    this.btnEraser = btnEraser;
+    this.btnDeletePage = btnDeletePage;
     this.btnNextPage = btnNextPage;
     this.btnPrevPage = btnPrevPage;
-    this.btnRed = btnRed;
-    this.btnThick = btnThick;
-    this.btnThin = btnThin;
+    this.btnSizesMenu = btnSizesMenu;
+    this.btnToolsMenu = btnToolsMenu;
     this.drawingCanvas = drawingCanvas;
     this.txtPageIndicator = txtPageIndicator;
   }
@@ -106,21 +93,9 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.btnBlack;
-      Button btnBlack = ViewBindings.findChildViewById(rootView, id);
-      if (btnBlack == null) {
-        break missingId;
-      }
-
-      id = R.id.btnBlue;
-      Button btnBlue = ViewBindings.findChildViewById(rootView, id);
-      if (btnBlue == null) {
-        break missingId;
-      }
-
-      id = R.id.btnEraser;
-      Button btnEraser = ViewBindings.findChildViewById(rootView, id);
-      if (btnEraser == null) {
+      id = R.id.btnDeletePage;
+      Button btnDeletePage = ViewBindings.findChildViewById(rootView, id);
+      if (btnDeletePage == null) {
         break missingId;
       }
 
@@ -136,21 +111,15 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.btnRed;
-      Button btnRed = ViewBindings.findChildViewById(rootView, id);
-      if (btnRed == null) {
+      id = R.id.btnSizesMenu;
+      Button btnSizesMenu = ViewBindings.findChildViewById(rootView, id);
+      if (btnSizesMenu == null) {
         break missingId;
       }
 
-      id = R.id.btnThick;
-      Button btnThick = ViewBindings.findChildViewById(rootView, id);
-      if (btnThick == null) {
-        break missingId;
-      }
-
-      id = R.id.btnThin;
-      Button btnThin = ViewBindings.findChildViewById(rootView, id);
-      if (btnThin == null) {
+      id = R.id.btnToolsMenu;
+      Button btnToolsMenu = ViewBindings.findChildViewById(rootView, id);
+      if (btnToolsMenu == null) {
         break missingId;
       }
 
@@ -166,9 +135,8 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityNoteEditorBinding((LinearLayout) rootView, btnAddPage, btnBlack, btnBlue,
-          btnEraser, btnNextPage, btnPrevPage, btnRed, btnThick, btnThin, drawingCanvas,
-          txtPageIndicator);
+      return new ActivityNoteEditorBinding((LinearLayout) rootView, btnAddPage, btnDeletePage,
+          btnNextPage, btnPrevPage, btnSizesMenu, btnToolsMenu, drawingCanvas, txtPageIndicator);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
