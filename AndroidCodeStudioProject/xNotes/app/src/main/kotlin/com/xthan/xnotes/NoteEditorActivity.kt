@@ -34,31 +34,31 @@ class NoteEditorActivity : AppCompatActivity() {
 
         canvasView.onStrokeAdded = { autoSaveData() }
 
-        // Setup Dropdown Popup Menu for Tools & Colors
+        // Setup Dropdown Popup Menu for Tools & Colors with crisp square glyphs
         val btnToolsMenu = findViewById<Button>(R.id.btnToolsMenu)
         btnToolsMenu.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
-            popup.menu.add(0, 1, 0, "Black Pencil")
-            popup.menu.add(0, 2, 0, "Red Pencil")
-            popup.menu.add(0, 3, 0, "Blue Pencil")
-            popup.menu.add(0, 4, 0, "Eraser Mode")
+            popup.menu.add(0, 1, 0, "⬛ Black Pencil")
+            popup.menu.add(0, 2, 0, "🟥 Red Pencil")
+            popup.menu.add(0, 3, 0, "🟦 Blue Pencil")
+            popup.menu.add(0, 4, 0, "🧼 Eraser Mode")
             
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     1 -> {
                         canvasView.isEraserMode = false
                         canvasView.currentPenColor = Color.BLACK
-                        btnToolsMenu.text = "✏️ Black"
+                        btnToolsMenu.text = "⬛ Black"
                     }
                     2 -> {
                         canvasView.isEraserMode = false
                         canvasView.currentPenColor = Color.RED
-                        btnToolsMenu.text = "✏️ Red"
+                        btnToolsMenu.text = "🟥 Red"
                     }
                     3 -> {
                         canvasView.isEraserMode = false
                         canvasView.currentPenColor = Color.BLUE
-                        btnToolsMenu.text = "✏️ Blue"
+                        btnToolsMenu.text = "🟦 Blue"
                     }
                     4 -> {
                         canvasView.isEraserMode = true
@@ -67,6 +67,24 @@ class NoteEditorActivity : AppCompatActivity() {
                 }
                 true
             }
+            
+            // Force icons/emojis to render inside native dropdown items via internal reflection
+            try {
+                val fields = popup.javaClass.getDeclaredFields()
+                for (field in fields) {
+                    if ("mPopup" == field.name) {
+                        field.isAccessible = true
+                        val menuPopupHelper = field.get(popup)
+                        val classPopupHelper = Class.forName(menuPopupHelper.javaClass.name)
+                        val setForceIcons = classPopupHelper.getMethod("setForceShowIcon", Boolean::class.java)
+                        setForceIcons.invoke(menuPopupHelper, true)
+                        break
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            
             popup.show()
         }
 
@@ -74,9 +92,9 @@ class NoteEditorActivity : AppCompatActivity() {
         val btnSizesMenu = findViewById<Button>(R.id.btnSizesMenu)
         btnSizesMenu.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
-            popup.menu.add(0, 1, 0, "Extra Thin (2px)")
-            popup.menu.add(0, 2, 0, "Thin (5px)")
-            popup.menu.add(0, 3, 0, "Thick (20px)")
+            popup.menu.add(0, 1, 0, "📐 Extra Thin (2px)")
+            popup.menu.add(0, 2, 0, "📐 Thin (5px)")
+            popup.menu.add(0, 3, 0, "📐 Thick (20px)")
             
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
@@ -95,10 +113,28 @@ class NoteEditorActivity : AppCompatActivity() {
                 }
                 true
             }
+
+            // Force icons/emojis to render inside native dropdown items via internal reflection
+            try {
+                val fields = popup.javaClass.getDeclaredFields()
+                for (field in fields) {
+                    if ("mPopup" == field.name) {
+                        field.isAccessible = true
+                        val menuPopupHelper = field.get(popup)
+                        val classPopupHelper = Class.forName(menuPopupHelper.javaClass.name)
+                        val setForceIcons = classPopupHelper.getMethod("setForceShowIcon", Boolean::class.java)
+                        setForceIcons.invoke(menuPopupHelper, true)
+                        break
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            
             popup.show()
         }
 
-        // Base Navigation triggers
+        // Navigation Action Listeners
         findViewById<Button>(R.id.btnAddPage).setOnClickListener {
             canvasView.addPage()
             updatePageIndicator()
@@ -111,20 +147,18 @@ class NoteEditorActivity : AppCompatActivity() {
             if (canvasView.nextPage()) updatePageIndicator()
         }
 
-        // Destructive safe page removal operation block
+        // Safe Page Removal implementation with AlertDialog verification shield
         findViewById<Button>(R.id.btnDeletePage).setOnClickListener {
             val targetIdx = canvasView.currentPageIndex
             AlertDialog.Builder(this)
-                .setTitle("Delete Page Confirmation")
-                .setMessage("Are you entirely sure you want to completely erase Page ${targetIdx + 1}? This action cannot be reversed.")
-                .setPositiveButton("Delete Permanently") { _, _ ->
+                .setTitle("Delete Page")
+                .setMessage("Delete Page ${targetIdx + 1}? This action cannot be reversed.")
+                .setPositiveButton("Delete") { _, _ ->
                     if (canvasView.getPageCount() <= 1) {
-                        // Reset everything back to blank if clearing down out of a single layout
                         canvasView.pages[0].clear()
                         canvasView.resetZoomAndPan()
                     } else {
                         canvasView.pages.removeAt(targetIdx)
-                        // Adjust index back down safely so viewport retains placement tracking bounds
                         if (canvasView.currentPageIndex >= canvasView.getPageCount()) {
                             canvasView.currentPageIndex = canvasView.getPageCount() - 1
                         }
@@ -132,7 +166,7 @@ class NoteEditorActivity : AppCompatActivity() {
                     }
                     updatePageIndicator()
                     autoSaveData()
-                    Toast.makeText(this, "Page cleared successfully", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Page deleted", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()

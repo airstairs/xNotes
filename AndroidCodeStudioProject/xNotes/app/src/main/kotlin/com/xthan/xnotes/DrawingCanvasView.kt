@@ -2,10 +2,11 @@ package com.xthan.xnotes
 
 import android.content.Context
 import android.graphics.*
-import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import android.util.AttributeSet
 
 class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
@@ -19,18 +20,20 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     var isEraserMode = false
     private var currentPoints = StringBuilder()
 
-    // Canvas Paper Sizing
-    private var paperWidth = 0f
-    private var paperHeight = 0f
+    // Fixed Standard 8.5 x 11 Letter Proportion grid dimensions to safeguard cross-device portability
+    val paperWidth = 850f
+    val paperHeight = 1100f
 
-    // Zoom and Pan coordinates
-    private var scaleFactor = 1.0f
-    private var translateX = 0f
-    private var translateY = 0f
+    // Navigation Matrix system coordinates
+    var scaleFactor = 1.0f
+    var translateX = 0f
+    var translateY = 0f
 
     private val transformMatrix = Matrix()
     private val inverseMatrix = Matrix()
+    
     private val scaleDetector = ScaleGestureDetector(context, ScaleListener())
+    private val gestureDetector = GestureDetector(context, GestureListener())
 
     private var lastTouchX = 0f
     private var lastTouchY = 0f
@@ -40,46 +43,53 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        // Force the canvas paper size to always lock onto Portrait dimensions
-        if (paperWidth == 0f || paperHeight == 0f) {
-            paperWidth = Math.min(w, h).toFloat()
-            paperHeight = Math.max(w, h).toFloat()
-        }
+        resetZoomAndPan()
     }
 
     fun resetZoomAndPan() {
-        scaleFactor = 1.0f
-        translateX = 0f
-        translateY = 0f
+        if (width == 0 || height == 0) return
+
+        // Calculate maximum aspect-fit ratios inside standard viewport boundaries
+        val scaleX = width.toFloat() / paperWidth
+        val scaleY = height.toFloat() / paperHeight
+        scaleFactor = Math.min(scaleX, scaleY)
+        
+        // Evenly balance off-center empty spaces for horizontal and vertical layouts
+        translateX = (width.toFloat() - (paperWidth * scaleFactor)) / 2f
+        translateY = (height.toFloat() - (paperHeight * scaleFactor)) / 2f
+        
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.save()
         
-        // Build view transformation around center baseline
+        // Render neutral presentation gray onto host background workspace
+        canvas.drawColor(Color.parseColor("#E0E0E0"))
+
+        canvas.save()
         transformMatrix.reset()
+        transformMatrix.postScale(scaleFactor, scaleFactor)
         transformMatrix.postTranslate(translateX, translateY)
-        transformMatrix.postScale(scaleFactor, scaleFactor, width / 2f, height / 2f)
         canvas.concat(transformMatrix)
 
-        // Draw the explicit Paper boundary block
+        // Draw standard white canvas paper boundary sheet
         val paperPaint = Paint().apply {
             color = Color.WHITE
             style = Paint.Style.FILL
         }
         canvas.drawRect(0f, 0f, paperWidth, paperHeight, paperPaint)
 
-        // Draw lines or borders if screen is rotated out of default scale
+        // Draw crisp framing borders
         val borderPaint = Paint().apply {
-            color = Color.LTGRAY
+            color = Color.parseColor("#9E9E9E")
             style = Paint.Style.STROKE
             strokeWidth = 2f
+            isAntiAlias = true
         }
         canvas.drawRect(0f, 0f, paperWidth, paperHeight, borderPaint)
 
-        // Draw vector strokes
+        // Render page vector strokes
         for (stroke in pages[currentPageIndex]) {
             val path = strokeToPath(stroke.pointsStr)
             val paint = createPaint(stroke.color, stroke.width)
@@ -92,6 +102,41 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             canvas.drawPath(currentPath, currentPaint)
         }
         canvas.restore()
+
+        drawViewportScrollbars(canvas)
+    }
+
+    private fun drawViewportScrollbars(canvas: Canvas) {
+        val viewW = width.toFloat()
+        val viewH = height.toFloat()
+        val docW = paperWidth * scaleFactor
+        val docH = paperHeight * scaleFactor
+
+        val scrollPaint = Paint().apply {
+            color = Color.parseColor("#80000000")
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+        val barThickness = 8f
+        val padding = 4f
+
+        if (docW > viewW) {
+            val sizeRatio = viewW / docW
+            val barWidth = viewW * sizeRatio
+            val maxScrollable = docW - viewW
+            val scrolledRatio = if (maxScrollable > 0) -translateX / maxScrollable else 0f
+            val barLeft = padding + (scrolledRatio * (viewW - barWidth - (padding * 2)))
+            canvas.drawRoundRect(barLeft, viewH - barThickness - padding, barLeft + barWidth, viewH - padding, 4f, 4f, scrollPaint)
+        }
+
+        if (docH > viewH) {
+            val sizeRatio = viewH / docH
+            val barHeight = viewH * sizeRatio
+            val maxScrollable = docH - viewH
+            val scrolledRatio = if (maxScrollable > 0) -translateY / maxScrollable else 0f
+            val barTop = padding + (scrolledRatio * (viewH - barHeight - (padding * 2)))
+            canvas.drawRoundRect(viewW - barThickness - padding, barTop, viewW - padding, barTop + barHeight, 4f, 4f, scrollPaint)
+        }
     }
 
     private fun strokeToPath(pointsStr: String): Path {
@@ -120,6 +165,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        gestureDetector.onTouchEvent(event)
         scaleDetector.onTouchEvent(event)
 
         if (event.pointerCount > 1) {
@@ -128,16 +174,16 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             
             val action = event.actionMasked
             if (action == MotionEvent.ACTION_MOVE) {
-                val x = event.getX(0)
-                val y = event.getY(0)
                 if (!scaleDetector.isInProgress) {
+                    val x = event.getX(0)
+                    val y = event.getY(0)
                     translateX += x - lastTouchX
                     translateY += y - lastTouchY
                     invalidate()
+                    lastTouchX = x
+                    lastTouchY = y
                 }
-                lastTouchX = x
-                lastTouchY = y
-            } else if (action == MotionEvent.ACTION_POINTER_DOWN) {
+            } else if (action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_POINTER_UP) {
                 lastTouchX = event.getX(0)
                 lastTouchY = event.getY(0)
             }
@@ -146,6 +192,8 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
         if (event.action == MotionEvent.ACTION_DOWN) {
             isPanning = false
+            lastTouchX = event.x
+            lastTouchY = event.y
         }
 
         if (isPanning) {
@@ -156,8 +204,8 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         }
 
         transformMatrix.reset()
+        transformMatrix.postScale(scaleFactor, scaleFactor)
         transformMatrix.postTranslate(translateX, translateY)
-        transformMatrix.postScale(scaleFactor, scaleFactor, width / 2f, height / 2f)
         transformMatrix.invert(inverseMatrix)
 
         val pts = floatArrayOf(event.x, event.y)
@@ -165,8 +213,11 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         val mappedX = pts[0]
         val mappedY = pts[1]
 
+        // Boundary bounding validation rule
+        val isInsidePaper = mappedX in 0f..paperWidth && mappedY in 0f..paperHeight
+
         if (isEraserMode) {
-            if (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_DOWN) {
+            if (isInsidePaper && (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_DOWN)) {
                 val iterator = pages[currentPageIndex].iterator()
                 var modified = false
                 while (iterator.hasNext()) {
@@ -186,18 +237,17 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                currentPoints.setLength(0)
-                currentPoints.append("$mappedX,$mappedY")
-                lastTouchX = event.x
-                lastTouchY = event.y
+                if (isInsidePaper) {
+                    currentPoints.setLength(0)
+                    currentPoints.append("$mappedX,$mappedY")
+                    invalidate()
+                }
             }
             MotionEvent.ACTION_MOVE -> {
-                if (currentPoints.isNotEmpty()) {
+                if (currentPoints.isNotEmpty() && isInsidePaper) {
                     currentPoints.append(",$mappedX,$mappedY")
+                    invalidate()
                 }
-                invalidate()
-                lastTouchX = event.x
-                lastTouchY = event.y
             }
             MotionEvent.ACTION_UP -> {
                 if (currentPoints.isNotEmpty()) {
@@ -293,10 +343,23 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
+            val oldScale = scaleFactor
             scaleFactor *= detector.scaleFactor
-            // Capped at 1.0f minimum to stay snapped to paper size, boosted to 15.0f maximum for high-detail zoom
-            scaleFactor = Math.max(1.0f, Math.min(scaleFactor, 15.0f))
+            scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 15.0f))
+
+            val focusX = detector.focusX
+            val focusY = detector.focusY
+            translateX = focusX - (focusX - translateX) * (scaleFactor / oldScale)
+            translateY = focusY - (focusY - translateY) * (scaleFactor / oldScale)
+
             invalidate()
+            return true
+        }
+    }
+
+    private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onDoubleTap(e: MotionEvent): Boolean {
+            resetZoomAndPan()
             return true
         }
     }
