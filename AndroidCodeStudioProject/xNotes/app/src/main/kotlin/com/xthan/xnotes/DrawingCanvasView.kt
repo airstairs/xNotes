@@ -19,6 +19,11 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     var isEraserMode = false
     private var currentPoints = StringBuilder()
 
+    // Canvas Paper Sizing
+    private var paperWidth = 0f
+    private var paperHeight = 0f
+
+    // Zoom and Pan coordinates
     private var scaleFactor = 1.0f
     private var translateX = 0f
     private var translateY = 0f
@@ -33,15 +38,48 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     var onStrokeAdded: (() -> Unit)? = null
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        // Force the canvas paper size to always lock onto Portrait dimensions
+        if (paperWidth == 0f || paperHeight == 0f) {
+            paperWidth = Math.min(w, h).toFloat()
+            paperHeight = Math.max(w, h).toFloat()
+        }
+    }
+
+    fun resetZoomAndPan() {
+        scaleFactor = 1.0f
+        translateX = 0f
+        translateY = 0f
+        invalidate()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.save()
         
+        // Build view transformation around center baseline
         transformMatrix.reset()
         transformMatrix.postTranslate(translateX, translateY)
         transformMatrix.postScale(scaleFactor, scaleFactor, width / 2f, height / 2f)
         canvas.concat(transformMatrix)
 
+        // Draw the explicit Paper boundary block
+        val paperPaint = Paint().apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        }
+        canvas.drawRect(0f, 0f, paperWidth, paperHeight, paperPaint)
+
+        // Draw lines or borders if screen is rotated out of default scale
+        val borderPaint = Paint().apply {
+            color = Color.LTGRAY
+            style = Paint.Style.STROKE
+            strokeWidth = 2f
+        }
+        canvas.drawRect(0f, 0f, paperWidth, paperHeight, borderPaint)
+
+        // Draw vector strokes
         for (stroke in pages[currentPageIndex]) {
             val path = strokeToPath(stroke.pointsStr)
             val paint = createPaint(stroke.color, stroke.width)
@@ -189,13 +227,13 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     fun addPage() {
         pages.add(mutableListOf())
         currentPageIndex = pages.size - 1
-        invalidate()
+        resetZoomAndPan()
     }
 
     fun nextPage(): Boolean {
         if (currentPageIndex < pages.size - 1) {
             currentPageIndex++
-            invalidate()
+            resetZoomAndPan()
             return true
         }
         return false
@@ -204,7 +242,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     fun prevPage(): Boolean {
         if (currentPageIndex > 0) {
             currentPageIndex--
-            invalidate()
+            resetZoomAndPan()
             return true
         }
         return false
@@ -230,7 +268,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         if (data.isEmpty()) {
             pages.add(mutableListOf())
             currentPageIndex = 0
-            invalidate()
+            resetZoomAndPan()
             return
         }
         val pTokens = data.split(";")
@@ -250,13 +288,14 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             pages.add(pageList)
         }
         currentPageIndex = 0
-        invalidate()
+        resetZoomAndPan()
     }
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             scaleFactor *= detector.scaleFactor
-            scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 5.0f))
+            // Capped at 1.0f minimum to stay snapped to paper size, boosted to 15.0f maximum for high-detail zoom
+            scaleFactor = Math.max(1.0f, Math.min(scaleFactor, 15.0f))
             invalidate()
             return true
         }
