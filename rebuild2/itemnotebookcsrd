@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="12dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <!-- Solid Color Square (Clickable Color Trigger) -->
+    <FrameLayout
+        android:id="@+id/notebookIconCard"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:background="#CCCCCC">
+
+        <TextView
+            android:id="@+id/notebookIconText"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="center"
+            android:text="X"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:background="@drawable/rounded_white_circle_bg"
+            android:textSize="14sp"/>
+    </FrameLayout>
+
+    <!-- Individual Delete Row Button -->
+    <Button
+        android:id="@+id/btnDeleteNotebook"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:text="✕"
+        android:textSize="14sp"
+        android:backgroundTint="#F44336"
+        android:textColor="#FFFFFF"
+        android:padding="0dp"/>
+
+    <!-- Title Label Wrap Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/notebookIconCard"
+        android:layout_toLeftOf="@id/btnDeleteNotebook"
+        android:layout_centerVertical="true"
+        android:orientation="vertical"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:id="@+id/txtNotebookTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notebook Title"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#000000"/>
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <!-- xNotes Header Title Label -->
+    <TextView
+        android:id="@+id/txtHeaderLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="xNotes"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#333333"/>
+
+    <!-- Global Import / Export Control Row -->
+    <LinearLayout
+        android:id="@+id/migrationActionBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="16dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnImportBackup"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="Import"
+            android:textSize="11sp"
+            android:backgroundTint="#607D8B"
+            android:textColor="#FFFFFF" />
+
+        <Button
+            android:id="@+id/btnExportBackup"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:layout_marginStart="8dp"
+            android:text="Export"
+            android:textSize="11sp"
+            android:backgroundTint="#607D8B"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Scrollable Save Stack -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewNotebooks"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/txtHeaderLabel"
+        android:layout_above="@id/btnCreateNotebook"
+        android:padding="8dp"
+        android:clipToPadding="false"/>
+
+    <!-- Add Controller Button Trigger -->
+    <Button
+        android:id="@+id/btnCreateNotebook"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:text="+ Open New Card"
+        android:textSize="16sp"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"/>
+
+</RelativeLayout>
