@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,7 +20,7 @@ import java.lang.String;
 
 public final class ActivityNoteEditorBinding implements ViewBinding {
   @NonNull
-  private final LinearLayout rootView;
+  private final RelativeLayout rootView;
 
   @NonNull
   public final Button btnAddPage;
@@ -34,35 +35,48 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   public final Button btnPrevPage;
 
   @NonNull
+  public final Button btnRedo;
+
+  @NonNull
   public final Button btnSizesMenu;
 
   @NonNull
   public final Button btnToolsMenu;
 
   @NonNull
+  public final Button btnUndo;
+
+  @NonNull
   public final DrawingCanvasView drawingCanvas;
+
+  @NonNull
+  public final LinearLayout topToolbar;
 
   @NonNull
   public final TextView txtPageIndicator;
 
-  private ActivityNoteEditorBinding(@NonNull LinearLayout rootView, @NonNull Button btnAddPage,
+  private ActivityNoteEditorBinding(@NonNull RelativeLayout rootView, @NonNull Button btnAddPage,
       @NonNull Button btnDeletePage, @NonNull Button btnNextPage, @NonNull Button btnPrevPage,
-      @NonNull Button btnSizesMenu, @NonNull Button btnToolsMenu,
-      @NonNull DrawingCanvasView drawingCanvas, @NonNull TextView txtPageIndicator) {
+      @NonNull Button btnRedo, @NonNull Button btnSizesMenu, @NonNull Button btnToolsMenu,
+      @NonNull Button btnUndo, @NonNull DrawingCanvasView drawingCanvas,
+      @NonNull LinearLayout topToolbar, @NonNull TextView txtPageIndicator) {
     this.rootView = rootView;
     this.btnAddPage = btnAddPage;
     this.btnDeletePage = btnDeletePage;
     this.btnNextPage = btnNextPage;
     this.btnPrevPage = btnPrevPage;
+    this.btnRedo = btnRedo;
     this.btnSizesMenu = btnSizesMenu;
     this.btnToolsMenu = btnToolsMenu;
+    this.btnUndo = btnUndo;
     this.drawingCanvas = drawingCanvas;
+    this.topToolbar = topToolbar;
     this.txtPageIndicator = txtPageIndicator;
   }
 
   @Override
   @NonNull
-  public LinearLayout getRoot() {
+  public RelativeLayout getRoot() {
     return rootView;
   }
 
@@ -111,6 +125,12 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnRedo;
+      Button btnRedo = ViewBindings.findChildViewById(rootView, id);
+      if (btnRedo == null) {
+        break missingId;
+      }
+
       id = R.id.btnSizesMenu;
       Button btnSizesMenu = ViewBindings.findChildViewById(rootView, id);
       if (btnSizesMenu == null) {
@@ -123,9 +143,21 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnUndo;
+      Button btnUndo = ViewBindings.findChildViewById(rootView, id);
+      if (btnUndo == null) {
+        break missingId;
+      }
+
       id = R.id.drawingCanvas;
       DrawingCanvasView drawingCanvas = ViewBindings.findChildViewById(rootView, id);
       if (drawingCanvas == null) {
+        break missingId;
+      }
+
+      id = R.id.topToolbar;
+      LinearLayout topToolbar = ViewBindings.findChildViewById(rootView, id);
+      if (topToolbar == null) {
         break missingId;
       }
 
@@ -135,8 +167,9 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityNoteEditorBinding((LinearLayout) rootView, btnAddPage, btnDeletePage,
-          btnNextPage, btnPrevPage, btnSizesMenu, btnToolsMenu, drawingCanvas, txtPageIndicator);
+      return new ActivityNoteEditorBinding((RelativeLayout) rootView, btnAddPage, btnDeletePage,
+          btnNextPage, btnPrevPage, btnRedo, btnSizesMenu, btnToolsMenu, btnUndo, drawingCanvas,
+          topToolbar, txtPageIndicator);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

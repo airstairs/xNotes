@@ -3765,8 +3765,10 @@ id btnMassDelete
 id btnNextPage
 id btnNotebook1
 id btnPrevPage
+id btnRedo
 id btnSizesMenu
 id btnToolsMenu
+id btnUndo
 id buttonPanel
 id cache_measures
 id callMeasure
@@ -4148,6 +4150,7 @@ id title_template
 id toggle
 id top
 id topPanel
+id topToolbar
 id top_center
 id touch_outside
 id transitionToEnd

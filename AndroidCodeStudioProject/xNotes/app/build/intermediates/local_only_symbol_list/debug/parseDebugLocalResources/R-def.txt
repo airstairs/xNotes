@@ -11,10 +11,13 @@ id btnMassDelete
 id btnNextPage
 id btnNotebook1
 id btnPrevPage
+id btnRedo
 id btnSizesMenu
 id btnToolsMenu
+id btnUndo
 id drawingCanvas
 id savesContainer
+id topToolbar
 id txtPageIndicator
 layout activity_main
 layout activity_note_editor
