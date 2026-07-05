@@ -37,7 +37,6 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     private var lastTouchX = 0f
     private var lastTouchY = 0f
     private var isPanning = false
-    private var ignoreCurrentStroke = false
 
     var onStrokeAdded: (() -> Unit)? = null
 
@@ -48,15 +47,19 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     fun resetZoomAndPan() {
         if (width == 0 || height == 0) return
+
         val scaleX = width.toFloat() / paperWidth
         val scaleY = height.toFloat() / paperHeight
         scaleFactor = Math.min(scaleX, scaleY)
+        
         translateX = (width.toFloat() - (paperWidth * scaleFactor)) / 2f
         translateY = (height.toFloat() - (paperHeight * scaleFactor)) / 2f
+        
         invalidate()
     }
 
-    fun undoLastStroke() {
+    // EXPOSED METHOD FOR BUTTON: Undo
+    fun undoLastStroke(): Boolean {
         val activeList = pages.getOrNull(currentPageIndex)
         val redoList = redoPages.getOrNull(currentPageIndex)
         if (!activeList.isNullOrEmpty() && redoList != null) {
@@ -64,10 +67,13 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             redoList.add(removed)
             invalidate()
             onStrokeAdded?.invoke()
+            return true
         }
+        return false
     }
 
-    fun redoLastStroke() {
+    // EXPOSED METHOD FOR BUTTON: Redo
+    fun redoLastStroke(): Boolean {
         val targetRedoList = redoPages.getOrNull(currentPageIndex)
         val targetActiveList = pages.getOrNull(currentPageIndex)
         if (!targetRedoList.isNullOrEmpty() && targetActiveList != null) {
@@ -75,7 +81,9 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             targetActiveList.add(restoredStroke)
             invalidate()
             onStrokeAdded?.invoke()
+            return true
         }
+        return false
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -108,12 +116,13 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             canvas.drawPath(path, paint)
         }
 
-        if (currentPoints.isNotEmpty() && !ignoreCurrentStroke) {
+        if (currentPoints.isNotEmpty()) {
             val currentPath = strokeToPath(currentPoints.toString())
             val currentPaint = createPaint(currentPenColor, currentPenSize)
             canvas.drawPath(currentPath, currentPaint)
         }
         canvas.restore()
+
         drawViewportScrollbars(canvas)
     }
 
@@ -180,27 +189,13 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         scaleDetector.onTouchEvent(event)
 
         val pointerCount = event.pointerCount
-        val action = event.actionMasked
 
+        // Standard 2-finger panning and zooming
         if (pointerCount > 1) {
-            ignoreCurrentStroke = true
+            isPanning = true
             currentPoints.setLength(0)
-        }
-
-        if (pointerCount == 3 && action == MotionEvent.ACTION_POINTER_DOWN) {
-            isPanning = true
-            redoLastStroke()
-            return true
-        }
-
-        if (pointerCount == 2 && action == MotionEvent.ACTION_POINTER_DOWN) {
-            isPanning = true
-            undoLastStroke()
-            return true
-        }
-
-        if (pointerCount > 1) {
-            isPanning = true
+            
+            val action = event.actionMasked
             if (action == MotionEvent.ACTION_MOVE && pointerCount == 2) {
                 if (!scaleDetector.isInProgress) {
                     val x = event.getX(0)
@@ -220,15 +215,13 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
         if (event.action == MotionEvent.ACTION_DOWN) {
             isPanning = false
-            ignoreCurrentStroke = false
             lastTouchX = event.x
             lastTouchY = event.y
         }
 
-        if (isPanning || ignoreCurrentStroke) {
+        if (isPanning) {
             if (event.action == MotionEvent.ACTION_UP) {
                 isPanning = false
-                ignoreCurrentStroke = false
             }
             return true
         }
@@ -273,21 +266,19 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                 }
             }
             MotionEvent.ACTION_MOVE -> {
-                if (currentPoints.isNotEmpty() && isInsidePaper && !ignoreCurrentStroke) {
+                if (currentPoints.isNotEmpty() && isInsidePaper) {
                     currentPoints.append(",$mappedX,$mappedY")
                     invalidate()
                 }
             }
             MotionEvent.ACTION_UP -> {
-                if (currentPoints.isNotEmpty() && !ignoreCurrentStroke) {
+                if (currentPoints.isNotEmpty()) {
                     pages[currentPageIndex].add(StrokeData(currentPoints.toString(), currentPenColor, currentPenSize))
                     redoPages[currentPageIndex].clear()
                     currentPoints.setLength(0)
                     invalidate()
                     onStrokeAdded?.invoke()
                 }
-                ignoreCurrentStroke = false
-                isPanning = false
             }
         }
         return true
