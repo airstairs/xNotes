@@ -1,8 +1,12 @@
 package com.xthan.xnotes
 
 import com.xthan.xnotes.R
+import android.app.ActivityManager
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.os.Bundle
 import android.widget.Button
 import android.widget.PopupMenu
@@ -28,9 +32,13 @@ class NoteEditorActivity : AppCompatActivity() {
 
         notebookId = intent.getStringExtra("NOTEBOOK_ID") ?: "default"
         val title = intent.getStringExtra("NOTEBOOK_TITLE") ?: "Notebook"
-        setTitle(title)
+        val noteColor = intent.getIntExtra("NOTEBOOK_COLOR", Color.DKGRAY)
         
+        setTitle(title)
         bottomTitleIndicator.text = title
+
+        // Dynamic System Recents UI Switcher Custom Card Mask Generator
+        updateSystemTaskDescriptionCard(title, noteColor)
 
         val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
         val savedData = prefs.getString("note_data_$notebookId", "") ?: ""
@@ -38,19 +46,9 @@ class NoteEditorActivity : AppCompatActivity() {
 
         canvasView.onStrokeAdded = { autoSaveData() }
 
-        // Floating Action Buttons Click Listeners
-        findViewById<Button>(R.id.btnUndo).setOnClickListener {
-            canvasView.undoLastStroke()
-        }
-
-        findViewById<Button>(R.id.btnRedo).setOnClickListener {
-            canvasView.redoLastStroke()
-        }
-
-        // Zoom Reset Trigger Listener (Left Floating Anchor Target)
-        findViewById<Button>(R.id.btnZoomReset).setOnClickListener {
-            canvasView.resetZoomAndPan()
-        }
+        findViewById<Button>(R.id.btnUndo).setOnClickListener { canvasView.undoLastStroke() }
+        findViewById<Button>(R.id.btnRedo).setOnClickListener { canvasView.redoLastStroke() }
+        findViewById<Button>(R.id.btnZoomReset).setOnClickListener { canvasView.resetZoomAndPan() }
 
         // Setup Dropdown Popup Menu for Tools & Colors
         val btnToolsMenu = findViewById<Button>(R.id.btnToolsMenu)
@@ -85,23 +83,6 @@ class NoteEditorActivity : AppCompatActivity() {
                 }
                 true
             }
-            
-            try {
-                val fields = popup.javaClass.getDeclaredFields()
-                for (field in fields) {
-                    if ("mPopup" == field.name) {
-                        field.isAccessible = true
-                        val menuPopupHelper = field.get(popup)
-                        val classPopupHelper = Class.forName(menuPopupHelper.javaClass.name)
-                        val setForceIcons = classPopupHelper.getMethod("setForceShowIcon", Boolean::class.java)
-                        setForceIcons.invoke(menuPopupHelper, true)
-                        break
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            
             popup.show()
         }
 
@@ -130,23 +111,6 @@ class NoteEditorActivity : AppCompatActivity() {
                 }
                 true
             }
-
-            try {
-                val fields = popup.javaClass.getDeclaredFields()
-                for (field in fields) {
-                    if ("mPopup" == field.name) {
-                        field.isAccessible = true
-                        val menuPopupHelper = field.get(popup)
-                        val classPopupHelper = Class.forName(menuPopupHelper.javaClass.name)
-                        val setForceIcons = classPopupHelper.getMethod("setForceShowIcon", Boolean::class.java)
-                        setForceIcons.invoke(menuPopupHelper, true)
-                        break
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            
             popup.show()
         }
 
@@ -189,6 +153,40 @@ class NoteEditorActivity : AppCompatActivity() {
         }
 
         updatePageIndicator()
+    }
+
+    private fun updateSystemTaskDescriptionCard(title: String, color: Int) {
+        try {
+            // Generate a custom launcher bitmap matching the chosen note color
+            val size = 64
+            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+            
+            // Draw solid square profile background
+            paint.color = color
+            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), paint)
+            
+            // Draw standard central white safety badge
+            paint.color = Color.WHITE
+            canvas.drawCircle(size / 2f, size / 2f, 16f, paint)
+            
+            // Draw clear black inner tracking letter symbol
+            paint.color = Color.BLACK
+            paint.textSize = 20f
+            paint.textAlign = Paint.Align.CENTER
+            paint.isFakeBoldText = true
+            
+            val yPos = (size / 2f) - ((paint.descent() + paint.ascent()) / 2f)
+            canvas.drawText("X", size / 2f, yPos, paint)
+
+            // Replaced builder with high-compatibility standard constructor
+            @Suppress("DEPRECATION")
+            val taskDesc = ActivityManager.TaskDescription(title, bitmap, color)
+            setTaskDescription(taskDesc)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun autoSaveData() {

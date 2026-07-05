@@ -1,333 +1,385 @@
 package com.xthan.xnotes
 
-import com.xthan.xnotes.R
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Canvas
 import android.graphics.Color
-import android.net.Uri
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.Shader
 import android.os.Bundle
-import android.widget.*
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import androidx.core.content.FileProvider
-import java.io.File
-import java.io.FileOutputStream
-
-
-
-
-
-
-
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var savesContainer: LinearLayout
-    private val PICK_FILE_REQUEST_CODE = 1001
+    data class NotebookItem(val id: String, var title: String, var colorInt: Int, var isSelected: Boolean = false)
+
+    private val notebookList = mutableListOf<NotebookItem>()
+    private lateinit var adapter: NotebookAdapter
+    private lateinit var recyclerView: RecyclerView
+    
+    private lateinit var selectionContextBar: LinearLayout
+    private var isSelectionMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        savesContainer = findViewById(R.id.savesContainer)
-
-        findViewById<Button>(R.id.btnNotebook1).setOnClickListener {
-            showNameInputDialog()
-        }
-
-        findViewById<Button>(R.id.btnExportAll).setOnClickListener {
-            showExportFileNameDialog()
-        }
-
-        findViewById<Button>(R.id.btnImportAll).setOnClickListener {
-            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "*/*"
-                addCategory(Intent.CATEGORY_OPENABLE)
+        selectionContextBar = findViewById(R.id.selectionContextBar)
+        recyclerView = findViewById(R.id.recyclerViewNotebooks)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        
+        adapter = NotebookAdapter(notebookList, 
+            onItemClick = { notebook, position ->
+                if (isSelectionMode) {
+                    notebook.isSelected = !notebook.isSelected
+                    adapter.notifyItemChanged(position)
+                } else {
+                    val intent = Intent(this, NoteEditorActivity::class.java).apply {
+                        putExtra("NOTEBOOK_ID", notebook.id)
+                        putExtra("NOTEBOOK_TITLE", notebook.title)
+                        putExtra("NOTEBOOK_COLOR", notebook.colorInt)
+                    }
+                    startActivity(intent)
+                }
+            },
+            onColorClick = { notebook, position ->
+                if (!isSelectionMode) {
+                    showVisualMixerColorPicker(notebook, position)
+                }
+            },
+            onDeleteClick = { position ->
+                // Individual direct delete target execution path
+                confirmDeleteNotebook(position)
             }
-            startActivityForResult(Intent.createChooser(intent, "Select Backup File"), PICK_FILE_REQUEST_CODE)
+        )
+        recyclerView.adapter = adapter
+
+        loadNotebookProfiles()
+
+        findViewById<Button>(R.id.btnCreateNotebook).setOnClickListener {
+            showCreateNotebookDialog()
         }
 
-        findViewById<Button>(R.id.btnMassDelete).setOnClickListener {
-            showMassDeleteDialog()
+        findViewById<Button>(R.id.btnExportBackup).setOnClickListener {
+            exportToClipboard()
+        }
+
+        findViewById<Button>(R.id.btnImportBackup).setOnClickListener {
+            importFromClipboard()
+        }
+
+        findViewById<Button>(R.id.btnManageThreads).setOnClickListener {
+            enterSelectionMode()
+        }
+
+        findViewById<Button>(R.id.btnCancelSelection).setOnClickListener {
+            exitSelectionMode()
+        }
+
+        findViewById<Button>(R.id.btnSelectAll).setOnClickListener {
+            val allChecked = notebookList.all { it.isSelected }
+            for (item in notebookList) {
+                item.isSelected = !allChecked
+            }
+            adapter.notifyDataSetChanged()
+        }
+
+        findViewById<Button>(R.id.btnConfirmMassDelete).setOnClickListener {
+            val selectedItems = notebookList.filter { it.isSelected }
+            if (selectedItems.isEmpty()) {
+                Toast.makeText(this, "No notes selected", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Delete Selected Threads")
+                .setMessage("Are you sure you want to delete ${selectedItems.size} selected notebooks? All internal pages will be lost.")
+                .setPositiveButton("Delete") { _, _ ->
+                    val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+                    val editor = prefs.edit()
+                    
+                    for (item in selectedItems) {
+                        editor.remove("note_data_${item.id}")
+                        notebookList.remove(item)
+                    }
+                    editor.apply()
+                    saveNotebookProfiles()
+                    exitSelectionMode()
+                    Toast.makeText(this, "Selected files deleted.", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        refreshSavedNotesList()
+    private fun enterSelectionMode() {
+        isSelectionMode = true
+        selectionContextBar.visibility = View.VISIBLE
+        for (item in notebookList) item.isSelected = false
+        adapter.setSelectionModeEnabled(true)
     }
 
-    private fun showNameInputDialog() {
-        val input = EditText(this).apply { hint = "Note Name" }
+    private fun exitSelectionMode() {
+        isSelectionMode = false
+        selectionContextBar.visibility = View.GONE
+        for (item in notebookList) item.isSelected = false
+        adapter.setSelectionModeEnabled(false)
+    }
+
+    private fun showCreateNotebookDialog() {
+        val input = EditText(this).apply { hint = "Enter notebook name..." }
         AlertDialog.Builder(this)
-            .setTitle("New Note Name")
+            .setTitle("Create New Card")
             .setView(input)
             .setPositiveButton("Create") { _, _ ->
                 val name = input.text.toString().trim()
                 if (name.isNotEmpty()) {
-                    saveNoteTitleToList(name)
-                    openNotebook(name, name)
+                    val randomColor = (0xFF000000 or (Math.random() * 0x00FFFFFF).toLong()).toInt()
+                    val newNote = NotebookItem(UUID.randomUUID().toString(), name, randomColor)
+                    notebookList.add(newNote)
+                    saveNotebookProfiles()
+                    adapter.notifyItemInserted(notebookList.size - 1)
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun saveNoteTitleToList(name: String) {
-        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-        val savedList = prefs.getStringSet("notes_list", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
-        savedList.add(name)
-        prefs.edit().putStringSet("notes_list", savedList).apply()
-        refreshSavedNotesList()
-    }
-
-    private fun refreshSavedNotesList() {
-        savesContainer.removeAllViews()
-        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-        val savedList = prefs.getStringSet("notes_list", emptySet()) ?: emptySet()
-
-        for (noteName in savedList) {
-            val itemLayout = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(0, 8, 0, 8)
-            }
-
-            val btnOpen = Button(this).apply {
-                text = noteName
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                setOnClickListener { openNotebook(noteName, noteName) }
-            }
-
-            val btnDelete = Button(this).apply {
-                text = "X"
-                backgroundTintList = android.content.res.ColorStateList.valueOf(Color.RED)
-                setOnClickListener {
-                    AlertDialog.Builder(context)
-                        .setTitle("Delete note?")
-                        .setMessage("Are you sure you want to delete '$noteName'?")
-                        .setPositiveButton("Delete") { _, _ ->
-                            val currentList = prefs.getStringSet("notes_list", emptySet())?.toMutableSet() ?: mutableSetOf()
-                            currentList.remove(noteName)
-                            prefs.edit().putStringSet("notes_list", currentList).remove("note_data_$noteName").apply()
-                            refreshSavedNotesList()
-                        }
-                        .setNegativeButton("Cancel", null)
-                        .show()
-                }
-            }
-
-            itemLayout.addView(btnOpen)
-            itemLayout.addView(btnDelete)
-            savesContainer.addView(itemLayout)
-        }
-    }
-
-    
-
-    private fun showExportFileNameDialog() {
-        val input = EditText(this).apply { hint = "Backup Name" }
+    private fun confirmDeleteNotebook(position: Int) {
+        val target = notebookList[position]
         AlertDialog.Builder(this)
-            .setTitle("Export System")
-            .setMessage("Enter custom target name for output file:")
-            .setView(input)
-            .setPositiveButton("Export") { _, _ ->
-                var fileName = input.text.toString().trim()
-                if (fileName.isEmpty()) fileName = "Backup"
-                
-                // Force the explicit custom file extension
-                if (!fileName.endsWith(".xNotesBackup")) {
-                    fileName = "$fileName.xNotesBackup"
-                }
-                
-                val combinedData = StringBuilder()
+            .setTitle("Delete Notebook")
+            .setMessage("Are you sure you want to delete '${target.title}'? This clears all page drawings.")
+            .setPositiveButton("Delete") { _, _ ->
                 val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-                val savedList = prefs.getStringSet("notes_list", emptySet()) ?: emptySet()
-    
-                for ((index, noteName) in savedList.withIndex()) {
-                    if (index > 0) combinedData.append("##NOTE_BREAK##")
-                    val noteData = prefs.getString("note_data_$noteName", "") ?: ""
-                    combinedData.append("$noteName##NOTE_SPLIT##$noteData")
-                }
-    
-                try {
-                    // Write data to a physical file inside the app cache directory
-                    val exportDir = File(cacheDir, "exports")
-                    if (!exportDir.exists()) exportDir.mkdirs()
-                    
-                    val outputFile = File(exportDir, fileName)
-                    FileOutputStream(outputFile).use { writer ->
-                        writer.write(combinedData.toString().toByteArray())
-                    }
-    
-                    // Generate a secure secure content URI via our FileProvider configuration
-                    val fileUri: Uri = FileProvider.getUriForFile(
-                        this,
-                        "com.xthan.xnotes.fileprovider",
-                        outputFile
-                    )
-    
-                    // Fire an ACTION_SEND intent passing the explicit binary file stream stream uri
-                    val sendIntent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_STREAM, fileUri)
-                        type = "application/octet-stream" // Signals to system that this is a raw document file
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    
-                    startActivity(Intent.createChooser(sendIntent, "Save xNotes System State File:"))
-                    
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Local Export Creation Failed", Toast.LENGTH_SHORT).show()
-                    e.printStackTrace()
-                }
+                prefs.edit().remove("note_data_${target.id}").apply()
+                notebookList.removeAt(position)
+                saveNotebookProfiles()
+                adapter.notifyItemRemoved(position)
+                adapter.notifyItemRangeChanged(position, notebookList.size)
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
+    private fun showVisualMixerColorPicker(notebook: NotebookItem, position: Int) {
+        val mixerView = ColorMixerView(this)
+        mixerView.setSelectedColor(notebook.colorInt)
 
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intentData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, intentData)
-        if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            intentData?.data?.let { uri ->
-                try {
-                    val inputStream = contentResolver.openInputStream(uri)
-                    val reader = BufferedReader(InputStreamReader(inputStream))
-                    val stringBuilder = StringBuilder()
-                    var line: String? = reader.readLine()
-                    while (line != null) {
-                        stringBuilder.append(line)
-                        line = reader.readLine()
-                    }
-                    inputStream?.close()
-
-                    val rawContent = stringBuilder.toString()
-                    if (rawContent.isNotEmpty()) {
-                        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-                        val editor = prefs.edit()
-                        val currentList = prefs.getStringSet("notes_list", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
-
-                        val segments = rawContent.split("##NOTE_BREAK##")
-                        for (segment in segments) {
-                            if (segment.contains("##NOTE_SPLIT##")) {
-                                val parts = segment.split("##NOTE_SPLIT##", limit = 2)
-                                val name = parts[0]
-                                val data = parts[1]
-                                currentList.add(name)
-                                editor.putString("note_data_$name", data)
-                            }
-                        }
-                        editor.putStringSet("notes_list", currentList).apply()
-                        refreshSavedNotesList()
-                        Toast.makeText(this, "Notes Imported Successfully", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Import Failure: Parsing Error", Toast.LENGTH_LONG).show()
-                }
+        AlertDialog.Builder(this)
+            .setTitle("Slide to Select Color")
+            .setView(mixerView)
+            .setPositiveButton("Select") { _, _ ->
+                notebook.colorInt = mixerView.getSelectedColor()
+                saveNotebookProfiles()
+                adapter.notifyItemChanged(position)
             }
-        }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
-    private fun showMassDeleteDialog() {
+    private fun exportToClipboard() {
         val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-        val savedList = prefs.getStringSet("notes_list", emptySet())?.toList() ?: emptyList()
-
-        if (savedList.isEmpty()) {
-            Toast.makeText(this, "No saved cards available to delete.", Toast.LENGTH_SHORT).show()
+        val manifest = prefs.getString("notebook_manifest_list", "") ?: ""
+        if (manifest.isEmpty()) {
+            Toast.makeText(this, "Nothing to export", Toast.LENGTH_SHORT).show()
             return
         }
-
-        val context = this
-        val layout = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(40, 20, 40, 20)
-        }
-
-        val selectAllLayout = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 10, 0, 20)
-        }
-        val cbSelectAll = CheckBox(context)
-        val tvSelectAll = TextView(context).apply { 
-            text = "Select All Notes"
-            textSize = 18f
-            setPadding(10, 0, 0, 0)
-        }
-        selectAllLayout.addView(cbSelectAll)
-        selectAllLayout.addView(tvSelectAll)
-        layout.addView(selectAllLayout)
-
-        val checkBoxes = mutableListOf<CheckBox>()
-        for (noteName in savedList) {
-            val itemLayout = LinearLayout(context).apply {
-                orientation = LinearLayout.HORIZONTAL
-                setPadding(20, 10, 0, 10)
-            }
-            val cb = CheckBox(context)
-            val tv = TextView(context).apply {
-                text = noteName
-                textSize = 16f
-                setPadding(10, 0, 0, 0)
-            }
-            itemLayout.addView(cb)
-            itemLayout.addView(tv)
-            layout.addView(itemLayout)
-            checkBoxes.add(cb)
-        }
-
-        cbSelectAll.setOnCheckedChangeListener { _, isChecked ->
-            for (cb in checkBoxes) {
-                cb.isChecked = isChecked
-            }
-        }
-
-        val scroll = ScrollView(context).apply { addView(layout) }
-
-        AlertDialog.Builder(context)
-            .setTitle("Thread Delete Manager")
-            .setView(scroll)
-            .setPositiveButton("Execute Trash") { _, _ ->
-                val targetedToDelete = mutableListOf<String>()
-                for (i in checkBoxes.indices) {
-                    if (checkBoxes[i].isChecked) {
-                        targetedToDelete.add(savedList[i])
-                    }
-                }
-
-                if (targetedToDelete.isNotEmpty()) {
-                    AlertDialog.Builder(context)
-                        .setTitle("Final Confirmation")
-                        .setMessage("Are you absolutely sure you want to permanently delete ${targetedToDelete.size} note entries?")
-                        .setPositiveButton("Yes, Delete") { _, _ ->
-                            val currentList = prefs.getStringSet("notes_list", emptySet())?.toMutableSet() ?: mutableSetOf()
-                            val editor = prefs.edit()
-                            for (target in targetedToDelete) {
-                                currentList.remove(target)
-                                editor.remove("note_data_$target")
-                            }
-                            editor.putStringSet("notes_list", currentList).apply()
-                            refreshSavedNotesList()
-                            Toast.makeText(context, "Selected entries cleared.", Toast.LENGTH_SHORT).show()
-                        }
-                        .setNegativeButton("Cancel", null)
-                        .show()
-                }
-            }
-            .setNegativeButton("Close", null)
-            .show()
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("xNotes Manifest Backup", manifest))
+        Toast.makeText(this, "Manifest copied to clipboard!", Toast.LENGTH_SHORT).show()
     }
 
-    private fun openNotebook(id: String, title: String) {
-        val intent = Intent(this, NoteEditorActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-            addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-            putExtra("NOTEBOOK_ID", id)
-            putExtra("NOTEBOOK_TITLE", title)
-            data = Uri.parse("notebook://open/$id")
+    private fun importFromClipboard() {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipData = clipboard.primaryClip
+        if (clipData != null && clipData.itemCount > 0) {
+            val text = clipData.getItemAt(0).text.toString().trim()
+            if (text.contains("::") && text.contains("||")) {
+                val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+                prefs.edit().putString("notebook_manifest_list", text).apply()
+                loadNotebookProfiles()
+                Toast.makeText(this, "Import successful!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Invalid backup data layout format", Toast.LENGTH_SHORT).show()
+            }
         }
-        startActivity(intent)
+    }
+
+    private fun saveNotebookProfiles() {
+        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+        val sb = StringBuilder()
+        for (item in notebookList) {
+            sb.append("${item.id}::${item.title}::${item.colorInt}||")
+        }
+        prefs.edit().putString("notebook_manifest_list", sb.toString()).apply()
+    }
+
+    private fun loadNotebookProfiles() {
+        notebookList.clear()
+        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+        val rawData = prefs.getString("notebook_manifest_list", "") ?: ""
+        if (rawData.isNotEmpty()) {
+            val tokens = rawData.split("||")
+            for (token in tokens) {
+                if (token.isNotEmpty()) {
+                    val parts = token.split("::")
+                    if (parts.size == 3) {
+                        notebookList.add(NotebookItem(parts[0], parts[1], parts[2].toInt()))
+                    }
+                }
+            }
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!isSelectionMode) {
+            loadNotebookProfiles()
+        }
+    }
+
+    class NotebookAdapter(
+        private val items: List<NotebookItem>,
+        private val onItemClick: (NotebookItem, Int) -> Unit,
+        private val onColorClick: (NotebookItem, Int) -> Unit,
+        private val onDeleteClick: (Int) -> Unit
+    ) : RecyclerView.Adapter<NotebookAdapter.ViewHolder>() {
+
+        private var showCheckBoxes = false
+
+        fun setSelectionModeEnabled(enabled: Boolean) {
+            showCheckBoxes = enabled
+            notifyDataSetChanged()
+        }
+
+        class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+            val iconCard: FrameLayout = v.findViewById(R.id.notebookIconCard)
+            val iconText: TextView = v.findViewById(R.id.notebookIconText)
+            val titleText: TextView = v.findViewById(R.id.txtNotebookTitle)
+            val clickArea: View = v.findViewById(R.id.lnrTextClickArea)
+            val checkBox: CheckBox = v.findViewById(R.id.notebookSelectionCheck)
+            val deleteButton: Button = v.findViewById(R.id.btnDeleteNotebook)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_notebook_card, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = items[position]
+            holder.titleText.text = item.title
+            holder.iconCard.setBackgroundColor(item.colorInt)
+            holder.iconText.text = "X"
+
+            if (showCheckBoxes) {
+                holder.checkBox.visibility = View.VISIBLE
+                holder.checkBox.isChecked = item.isSelected
+                holder.deleteButton.visibility = View.GONE // Hide individual button during mass mode
+            } else {
+                holder.checkBox.visibility = View.GONE
+                holder.deleteButton.visibility = View.VISIBLE // Keep it active for everyday immediate access
+            }
+
+            holder.clickArea.setOnClickListener { onItemClick(item, position) }
+            holder.iconCard.setOnClickListener { onColorClick(item, position) }
+            holder.deleteButton.setOnClickListener { onDeleteClick(position) }
+        }
+
+        override fun getItemCount(): Int = items.size
+    }
+
+    private class ColorMixerView(context: Context) : View(context) {
+        private val hsv = floatArrayOf(0f, 1f, 1f)
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private var selectX = -1f
+        private var selectY = -1f
+
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            setMeasuredDimension(ViewGroup.LayoutParams.MATCH_PARENT, 400)
+        }
+
+        override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+            super.onSizeChanged(w, h, oldw, oldh)
+            updateSliderCoordinates()
+        }
+
+        private fun updateSliderCoordinates() {
+            if (width > 0) {
+                selectX = (hsv[0] / 360f) * width.toFloat()
+                selectY = (1f - hsv[1]) * (height.toFloat() - 60f)
+                invalidate()
+            }
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            val w = width.toFloat()
+            val h = height.toFloat()
+
+            if (selectX < 0f || selectY < 0f) {
+                selectX = w / 2f
+                selectY = (h - 60f) / 2f
+            }
+
+            val colors = intArrayOf(Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED)
+            val shader = LinearGradient(0f, 0f, w, 0f, colors, null, Shader.TileMode.CLAMP)
+            paint.shader = shader
+            canvas.drawRect(0f, 0f, w, h - 60f, paint)
+            paint.shader = null
+
+            paint.color = Color.WHITE
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 6f
+            canvas.drawCircle(selectX, selectY, 18f, paint)
+
+            paint.color = Color.BLACK
+            paint.strokeWidth = 2f
+            canvas.drawCircle(selectX, selectY, 20f, paint)
+
+            paint.style = Paint.Style.FILL
+            paint.color = Color.HSVToColor(hsv)
+            canvas.drawRect(0f, h - 45f, w, h, paint)
+        }
+
+        override fun onTouchEvent(event: MotionEvent): Boolean {
+            if (event.action == MotionEvent.ACTION_DOWN || event.action == MotionEvent.ACTION_MOVE) {
+                selectX = Math.max(0f, Math.min(event.x, width.toFloat() - 1f))
+                selectY = Math.max(0f, Math.min(event.y, height.toFloat() - 61f))
+                
+                hsv[0] = (selectX / width.toFloat()) * 360f
+                hsv[1] = 1f - (selectY / (height.toFloat() - 60f))
+                hsv[2] = 1f
+                
+                invalidate()
+                return true
+            }
+            return super.onTouchEvent(event)
+        }
+
+        fun setSelectedColor(color: Int) {
+            Color.colorToHSV(color, hsv)
+            updateSliderCoordinates()
+        }
+
+        fun getSelectedColor(): Int = Color.HSVToColor(hsv)
     }
 }

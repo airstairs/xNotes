@@ -3649,6 +3649,7 @@ drawable notification_template_icon_bg
 drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
+drawable rounded_white_circle_bg
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
@@ -3758,14 +3759,18 @@ id bounceBoth
 id bounceEnd
 id bounceStart
 id btnAddPage
+id btnCancelSelection
+id btnConfirmMassDelete
+id btnCreateNotebook
+id btnDeleteNotebook
 id btnDeletePage
-id btnExportAll
-id btnImportAll
-id btnMassDelete
+id btnExportBackup
+id btnImportBackup
+id btnManageThreads
 id btnNextPage
-id btnNotebook1
 id btnPrevPage
 id btnRedo
+id btnSelectAll
 id btnSizesMenu
 id btnToolsMenu
 id btnUndo
@@ -3917,6 +3922,7 @@ id line3
 id linear
 id listMode
 id list_item
+id lnrTextClickArea
 id m3_side_sheet
 id marquee
 id masked
@@ -3945,6 +3951,7 @@ id material_value_index
 id matrix
 id message
 id middle
+id migrationActionBar
 id mini
 id month_grid
 id month_navigation_bar
@@ -3994,6 +4001,9 @@ id noState
 id none
 id normal
 id north
+id notebookIconCard
+id notebookIconText
+id notebookSelectionCheck
 id notification_background
 id notification_main_column
 id notification_main_column_container
@@ -4040,6 +4050,7 @@ id progress_horizontal
 id radio
 id ratio
 id rectangles
+id recyclerViewNotebooks
 id report_drawn
 id retreat
 id reverseSawtooth
@@ -4051,7 +4062,6 @@ id rounded
 id row_index_key
 id save_non_transition_alpha
 id save_overlay_view
-id savesContainer
 id sawtooth
 id scale
 id screen
@@ -4072,6 +4082,7 @@ id search_src_text
 id search_voice_btn
 id select_dialog_listview
 id selected
+id selectionContextBar
 id selection_type
 id sharedValueSet
 id sharedValueUnset
@@ -4166,6 +4177,8 @@ id transition_scene_layoutid_cache
 id transition_transform
 id triangle
 id txtBottomNotebookTitle
+id txtHeaderLabel
+id txtNotebookTitle
 id txtPageIndicator
 id unchecked
 id uniform
@@ -4329,6 +4342,7 @@ layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
+layout item_notebook_card
 layout m3_alert_dialog
 layout m3_alert_dialog_actions
 layout m3_alert_dialog_title
