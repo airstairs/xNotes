@@ -13,6 +13,10 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     data class StrokeData(val pointsStr: String, val color: Int, val width: Float)
 
     val pages = mutableListOf<MutableList<StrokeData>>(mutableListOf())
+    
+    // REDO ENGINE: Tracking history per page to save undone strokes
+    val redoPages = mutableListOf<MutableList<StrokeData>>(mutableListOf())
+    
     var currentPageIndex = 0
 
     var currentPenColor = Color.BLACK
@@ -20,11 +24,9 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     var isEraserMode = false
     private var currentPoints = StringBuilder()
 
-    // Fixed Standard 8.5 x 11 Letter Proportion grid dimensions
     val paperWidth = 850f
     val paperHeight = 1100f
 
-    // Navigation Matrix system coordinates
     var scaleFactor = 1.0f
     var translateX = 0f
     var translateY = 0f
@@ -38,10 +40,6 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     private var lastTouchX = 0f
     private var lastTouchY = 0f
     private var isPanning = false
-
-    // Multi-touch tracking states for Undo tracking
-    private var secondaryPointerSpawned = false
-    private var suppressDrawingForGesture = false
 
     var onStrokeAdded: (() -> Unit)? = null
 
@@ -63,18 +61,23 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         invalidate()
     }
 
-    // Public Undo macro function called by touch systems or external hooks
-    fun undoLastStroke() {
-        if (pages[currentPageIndex].isNotEmpty()) {
-            pages[currentPageIndex].removeAt(pages[currentPageIndex].size - 1)
+    // Dynamic execution logic to pop items back onto the active stroke layout
+    fun redoLastStroke(): Boolean {
+        val targetRedoList = redoPages.getOrNull(currentPageIndex)
+        val targetActiveList = pages.getOrNull(currentPageIndex)
+        
+        if (!targetRedoList.isNullOrEmpty() && targetActiveList != null) {
+            val restoredStroke = targetRedoList.removeAt(targetRedoList.size - 1)
+            targetActiveList.add(restoredStroke)
             invalidate()
-            onStrokeAdded?.invoke() // Triggers autosave state sync
+            onStrokeAdded?.invoke()
+            return true
         }
+        return false
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        
         canvas.drawColor(Color.parseColor("#E0E0E0"))
 
         canvas.save()
@@ -103,7 +106,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             canvas.drawPath(path, paint)
         }
 
-        if (currentPoints.isNotEmpty() && !suppressDrawingForGesture) {
+        if (currentPoints.isNotEmpty()) {
             val currentPath = strokeToPath(currentPoints.toString())
             val currentPaint = createPaint(currentPenColor, currentPenSize)
             canvas.drawPath(currentPath, currentPaint)
@@ -175,22 +178,39 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         gestureDetector.onTouchEvent(event)
         scaleDetector.onTouchEvent(event)
 
-        val action = event.actionMasked
+        val pointerCount = event.pointerCount
 
-        // Track dual-finger system interactions
-        if (event.pointerCount > 1) {
+        // 1. GESTURE MACRO: 3-Finger Tap to REDO
+        if (pointerCount == 3 && event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
+            currentPoints.setLength(0) // Cancel any partial line drawing
             isPanning = true
-            suppressDrawingForGesture = true
-            currentPoints.setLength(0) // Wipe out partial artifacts instantly
+            redoLastStroke()
+            return true
+        }
+
+        // 2. GESTURE MACRO: 2-Finger Tap to UNDO
+        if (pointerCount == 2 && event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
+            currentPoints.setLength(0) // Cancel any partial line drawing
+            isPanning = true
             
-            if (action == MotionEvent.ACTION_POINTER_DOWN) {
-                // Secondary cursor down detected! Flag it for a possible undo match.
-                if (event.pointerCount == 2) {
-                    secondaryPointerSpawned = true
-                }
+            val activeList = pages.getOrNull(currentPageIndex)
+            val redoList = redoPages.getOrNull(currentPageIndex)
+            if (!activeList.isNullOrEmpty() && redoList != null) {
+                val removed = activeList.removeAt(activeList.size - 1)
+                redoList.add(removed) // Save into redo history branch
+                invalidate()
+                onStrokeAdded?.invoke()
             }
+            return true
+        }
+
+        // Handle normal zoom/panning navigation transitions
+        if (pointerCount > 1) {
+            isPanning = true
+            currentPoints.setLength(0)
             
-            if (action == MotionEvent.ACTION_MOVE) {
+            val action = event.actionMasked
+            if (action == MotionEvent.ACTION_MOVE && pointerCount == 2) {
                 if (!scaleDetector.isInProgress) {
                     val x = event.getX(0)
                     val y = event.getY(0)
@@ -199,41 +219,27 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                     invalidate()
                     lastTouchX = x
                     lastTouchY = y
-                    
-                    // If fingers start dragging significant distances, it's a pan, not a clean tap.
-                    secondaryPointerSpawned = false
                 }
-            } else if (action == MotionEvent.ACTION_POINTER_UP) {
+            } else if (action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_POINTER_UP) {
                 lastTouchX = event.getX(0)
                 lastTouchY = event.getY(0)
             }
             return true
         }
 
-        if (action == MotionEvent.ACTION_DOWN) {
+        if (event.action == MotionEvent.ACTION_DOWN) {
             isPanning = false
-            secondaryPointerSpawned = false
-            suppressDrawingForGesture = false
             lastTouchX = event.x
             lastTouchY = event.y
         }
 
         if (isPanning) {
-            if (action == MotionEvent.ACTION_UP) {
-                val wasTwoFingerTapGesture = secondaryPointerSpawned
+            if (event.action == MotionEvent.ACTION_UP) {
                 isPanning = false
-                secondaryPointerSpawned = false
-                suppressDrawingForGesture = false
-                
-                if (wasTwoFingerTapGesture) {
-                    undoLastStroke()
-                    return true
-                }
             }
             return true
         }
 
-        // Map drawing inputs into standard coordinates matching the transformation matrices
         transformMatrix.reset()
         transformMatrix.postScale(scaleFactor, scaleFactor)
         transformMatrix.postTranslate(translateX, translateY)
@@ -247,7 +253,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         val isInsidePaper = mappedX in 0f..paperWidth && mappedY in 0f..paperHeight
 
         if (isEraserMode) {
-            if (isInsidePaper && (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_DOWN)) {
+            if (isInsidePaper && (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_DOWN)) {
                 val iterator = pages[currentPageIndex].iterator()
                 var modified = false
                 while (iterator.hasNext()) {
@@ -265,9 +271,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             return true
         }
 
-        if (suppressDrawingForGesture) return true
-
-        when (action) {
+        when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 if (isInsidePaper) {
                     currentPoints.setLength(0)
@@ -284,6 +288,10 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             MotionEvent.ACTION_UP -> {
                 if (currentPoints.isNotEmpty()) {
                     pages[currentPageIndex].add(StrokeData(currentPoints.toString(), currentPenColor, currentPenSize))
+                    
+                    // Clear the redo page index list completely when a new line is drawn manually
+                    redoPages[currentPageIndex].clear()
+                    
                     currentPoints.setLength(0)
                     invalidate()
                     onStrokeAdded?.invoke()
@@ -308,6 +316,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     fun addPage() {
         pages.add(mutableListOf())
+        redoPages.add(mutableListOf())
         currentPageIndex = pages.size - 1
         resetZoomAndPan()
     }
@@ -347,8 +356,10 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     fun loadFromSerializedString(data: String) {
         pages.clear()
+        redoPages.clear()
         if (data.isEmpty()) {
             pages.add(mutableListOf())
+            redoPages.add(mutableListOf())
             currentPageIndex = 0
             resetZoomAndPan()
             return
@@ -368,6 +379,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                 }
             }
             pages.add(pageList)
+            redoPages.add(mutableListOf())
         }
         currentPageIndex = 0
         resetZoomAndPan()

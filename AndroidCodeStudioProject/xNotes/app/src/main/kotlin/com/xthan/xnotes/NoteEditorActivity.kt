@@ -132,7 +132,6 @@ class NoteEditorActivity : AppCompatActivity() {
             popup.show()
         }
 
-        // Navigation Action Listeners
         findViewById<Button>(R.id.btnAddPage).setOnClickListener {
             canvasView.addPage()
             updatePageIndicator()
@@ -145,7 +144,6 @@ class NoteEditorActivity : AppCompatActivity() {
             if (canvasView.nextPage()) updatePageIndicator()
         }
 
-        // Safe Page Removal implementation with AlertDialog verification shield
         findViewById<Button>(R.id.btnDeletePage).setOnClickListener {
             val targetIdx = canvasView.currentPageIndex
             AlertDialog.Builder(this)
@@ -154,9 +152,11 @@ class NoteEditorActivity : AppCompatActivity() {
                 .setPositiveButton("Delete") { _, _ ->
                     if (canvasView.getPageCount() <= 1) {
                         canvasView.pages[0].clear()
+                        canvasView.redoPages[0].clear()
                         canvasView.resetZoomAndPan()
                     } else {
                         canvasView.pages.removeAt(targetIdx)
+                        canvasView.redoPages.removeAt(targetIdx)
                         if (canvasView.currentPageIndex >= canvasView.getPageCount()) {
                             canvasView.currentPageIndex = canvasView.getPageCount() - 1
                         }
