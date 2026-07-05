@@ -2,7 +2,6 @@ package com.xthan.xnotes
 
 import android.content.Context
 import android.graphics.*
-import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
@@ -32,7 +31,6 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     private val inverseMatrix = Matrix()
     
     private val scaleDetector = ScaleGestureDetector(context, ScaleListener())
-    private val gestureDetector = GestureDetector(context, GestureListener())
 
     private var lastTouchX = 0f
     private var lastTouchY = 0f
@@ -58,7 +56,6 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         invalidate()
     }
 
-    // EXPOSED METHOD FOR BUTTON: Undo
     fun undoLastStroke(): Boolean {
         val activeList = pages.getOrNull(currentPageIndex)
         val redoList = redoPages.getOrNull(currentPageIndex)
@@ -72,7 +69,6 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         return false
     }
 
-    // EXPOSED METHOD FOR BUTTON: Redo
     fun redoLastStroke(): Boolean {
         val targetRedoList = redoPages.getOrNull(currentPageIndex)
         val targetActiveList = pages.getOrNull(currentPageIndex)
@@ -185,12 +181,10 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        gestureDetector.onTouchEvent(event)
         scaleDetector.onTouchEvent(event)
 
         val pointerCount = event.pointerCount
 
-        // Standard 2-finger panning and zooming
         if (pointerCount > 1) {
             isPanning = true
             currentPoints.setLength(0)
@@ -380,13 +374,6 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             translateY = focusY - (focusY - translateY) * (scaleFactor / oldScale)
 
             invalidate()
-            return true
-        }
-    }
-
-    private inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
-        override fun onDoubleTap(e: MotionEvent): Boolean {
-            resetZoomAndPan()
             return true
         }
     }

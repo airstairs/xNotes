@@ -47,10 +47,16 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   public final Button btnUndo;
 
   @NonNull
+  public final Button btnZoomReset;
+
+  @NonNull
   public final DrawingCanvasView drawingCanvas;
 
   @NonNull
   public final LinearLayout topToolbar;
+
+  @NonNull
+  public final TextView txtBottomNotebookTitle;
 
   @NonNull
   public final TextView txtPageIndicator;
@@ -58,8 +64,9 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   private ActivityNoteEditorBinding(@NonNull RelativeLayout rootView, @NonNull Button btnAddPage,
       @NonNull Button btnDeletePage, @NonNull Button btnNextPage, @NonNull Button btnPrevPage,
       @NonNull Button btnRedo, @NonNull Button btnSizesMenu, @NonNull Button btnToolsMenu,
-      @NonNull Button btnUndo, @NonNull DrawingCanvasView drawingCanvas,
-      @NonNull LinearLayout topToolbar, @NonNull TextView txtPageIndicator) {
+      @NonNull Button btnUndo, @NonNull Button btnZoomReset,
+      @NonNull DrawingCanvasView drawingCanvas, @NonNull LinearLayout topToolbar,
+      @NonNull TextView txtBottomNotebookTitle, @NonNull TextView txtPageIndicator) {
     this.rootView = rootView;
     this.btnAddPage = btnAddPage;
     this.btnDeletePage = btnDeletePage;
@@ -69,8 +76,10 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
     this.btnSizesMenu = btnSizesMenu;
     this.btnToolsMenu = btnToolsMenu;
     this.btnUndo = btnUndo;
+    this.btnZoomReset = btnZoomReset;
     this.drawingCanvas = drawingCanvas;
     this.topToolbar = topToolbar;
+    this.txtBottomNotebookTitle = txtBottomNotebookTitle;
     this.txtPageIndicator = txtPageIndicator;
   }
 
@@ -149,6 +158,12 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnZoomReset;
+      Button btnZoomReset = ViewBindings.findChildViewById(rootView, id);
+      if (btnZoomReset == null) {
+        break missingId;
+      }
+
       id = R.id.drawingCanvas;
       DrawingCanvasView drawingCanvas = ViewBindings.findChildViewById(rootView, id);
       if (drawingCanvas == null) {
@@ -161,6 +176,12 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.txtBottomNotebookTitle;
+      TextView txtBottomNotebookTitle = ViewBindings.findChildViewById(rootView, id);
+      if (txtBottomNotebookTitle == null) {
+        break missingId;
+      }
+
       id = R.id.txtPageIndicator;
       TextView txtPageIndicator = ViewBindings.findChildViewById(rootView, id);
       if (txtPageIndicator == null) {
@@ -168,8 +189,8 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
       }
 
       return new ActivityNoteEditorBinding((RelativeLayout) rootView, btnAddPage, btnDeletePage,
-          btnNextPage, btnPrevPage, btnRedo, btnSizesMenu, btnToolsMenu, btnUndo, drawingCanvas,
-          topToolbar, txtPageIndicator);
+          btnNextPage, btnPrevPage, btnRedo, btnSizesMenu, btnToolsMenu, btnUndo, btnZoomReset,
+          drawingCanvas, topToolbar, txtBottomNotebookTitle, txtPageIndicator);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

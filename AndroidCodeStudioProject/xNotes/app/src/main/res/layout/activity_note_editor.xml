@@ -93,34 +93,67 @@
         android:layout_below="@id/topToolbar"
         android:background="#FFFFFF" />
 
-    <!-- Clean Floating Buttons Layer (Bottom-Right Corner) -->
-    <LinearLayout
-        android:layout_width="wrap_content"
+    <!-- Clean Bottom Row Controller Layer -->
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:orientation="horizontal">
+        android:layout_margin="16dp">
 
+        <!-- Floating Left Zoom Reset Action Target -->
         <Button
-            android:id="@+id/btnUndo"
-            android:layout_width="56dp"
+            android:id="@+id/btnZoomReset"
+            android:layout_width="wrap_content"
             android:layout_height="56dp"
-            android:layout_marginEnd="8dp"
-            android:text="Undo"
-            android:textSize="12sp"
+            android:layout_alignParentStart="true"
+            android:text="Zoom Out"
+            android:textSize="11sp"
             android:backgroundTint="#FFFFFF"
-            android:textColor="#000000" />
+            android:textColor="#000000"
+            android:paddingHorizontal="12dp" />
 
-        <Button
-            android:id="@+id/btnRedo"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:text="Redo"
+        <!-- Centered Notebook Title Indicator -->
+        <TextView
+            android:id="@+id/txtBottomNotebookTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="Notebook Name"
+            android:textColor="#777777"
             android:textSize="12sp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#000000" />
-            
-    </LinearLayout>
+            android:textStyle="italic"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingHorizontal="60dp" />
+
+        <!-- Floating Undo/Redo Controls Layer (Far Right Edge) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnUndo"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="8dp"
+                android:text="Undo"
+                android:textSize="12sp"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#000000" />
+
+            <Button
+                android:id="@+id/btnRedo"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="Redo"
+                android:textSize="12sp"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="#000000" />
+                
+        </LinearLayout>
+        
+    </RelativeLayout>
     
 </RelativeLayout>

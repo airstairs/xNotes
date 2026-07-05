@@ -15,6 +15,7 @@ class NoteEditorActivity : AppCompatActivity() {
 
     private lateinit var canvasView: DrawingCanvasView
     private lateinit var pageIndicator: TextView
+    private lateinit var bottomTitleIndicator: TextView
     private lateinit var notebookId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,10 +24,13 @@ class NoteEditorActivity : AppCompatActivity() {
 
         canvasView = findViewById(R.id.drawingCanvas)
         pageIndicator = findViewById(R.id.txtPageIndicator)
+        bottomTitleIndicator = findViewById(R.id.txtBottomNotebookTitle)
 
         notebookId = intent.getStringExtra("NOTEBOOK_ID") ?: "default"
         val title = intent.getStringExtra("NOTEBOOK_TITLE") ?: "Notebook"
         setTitle(title)
+        
+        bottomTitleIndicator.text = title
 
         val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
         val savedData = prefs.getString("note_data_$notebookId", "") ?: ""
@@ -41,6 +45,11 @@ class NoteEditorActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnRedo).setOnClickListener {
             canvasView.redoLastStroke()
+        }
+
+        // Zoom Reset Trigger Listener (Left Floating Anchor Target)
+        findViewById<Button>(R.id.btnZoomReset).setOnClickListener {
+            canvasView.resetZoomAndPan()
         }
 
         // Setup Dropdown Popup Menu for Tools & Colors

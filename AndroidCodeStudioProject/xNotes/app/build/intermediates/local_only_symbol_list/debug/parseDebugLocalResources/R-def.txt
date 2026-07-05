@@ -15,9 +15,11 @@ id btnRedo
 id btnSizesMenu
 id btnToolsMenu
 id btnUndo
+id btnZoomReset
 id drawingCanvas
 id savesContainer
 id topToolbar
+id txtBottomNotebookTitle
 id txtPageIndicator
 layout activity_main
 layout activity_note_editor
