@@ -39,6 +39,16 @@
             android:background="#999999"
             android:layout_marginHorizontal="6dp"/>
 
+        <!-- Quick Jump Page Shortcut Button -->
+        <Button
+            android:id="@+id/btnJumpPage"
+            android:layout_width="36dp"
+            android:layout_height="wrap_content"
+            android:text="⇱"
+            android:textSize="14sp"
+            android:padding="0dp"
+            android:layout_marginEnd="4dp"/>
+
         <Button
             android:id="@+id/btnPrevPage"
             android:layout_width="36dp"
@@ -85,22 +95,22 @@
 
     </LinearLayout>
 
-    <!-- Main Workspace Drawing Canvas (Fixed to clear bottom buttons) -->
+    <!-- Main Workspace Drawing Canvas (Fills Screen Behind Transparent Controls) -->
     <com.xthan.xnotes.DrawingCanvasView
         android:id="@+id/drawingCanvas"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/topToolbar"
-        android:layout_above="@+id/bottomControllerLayer"
         android:background="#FFFFFF" />
 
-    <!-- Clean Bottom Row Controller Layer -->
+    <!-- Clean Bottom Row Controller Layer (Completely Transparent Background Block) -->
     <RelativeLayout
         android:id="@+id/bottomControllerLayer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_margin="16dp">
+        android:background="@android:color/transparent"
+        android:padding="16dp">
 
         <!-- Floating Left Zoom Reset Action Target -->
         <Button

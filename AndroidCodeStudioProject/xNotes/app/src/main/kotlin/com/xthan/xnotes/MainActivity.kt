@@ -1,6 +1,6 @@
 package com.xthan.xnotes
 
-import android.content.ClipboardManager
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Shader
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -24,6 +25,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.util.UUID
 
 class MainActivity : AppCompatActivity() {
@@ -36,6 +39,11 @@ class MainActivity : AppCompatActivity() {
     
     private lateinit var selectionContextBar: LinearLayout
     private var isSelectionMode = false
+
+    companion object {
+        private const val REQUEST_CODE_EXPORT = 4221
+        private const val REQUEST_CODE_IMPORT = 4222
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,11 +85,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnExportBackup).setOnClickListener {
-            exportNotebookManifest()
+            triggerSystemFileExport()
         }
 
         findViewById<Button>(R.id.btnImportBackup).setOnClickListener {
-            importNotebookManifest()
+            triggerSystemFileImport()
         }
 
         findViewById<Button>(R.id.btnManageThreads).setOnClickListener {
@@ -109,7 +117,7 @@ class MainActivity : AppCompatActivity() {
 
             AlertDialog.Builder(this)
                 .setTitle("Delete Selected Threads")
-                .setMessage("Are you sure you want to delete ${selectedItems.size} selected notebooks? All internal pages will be lost.")
+                .setMessage("Are you sure you want to delete ${selectedItems.size} selected notebooks?")
                 .setPositiveButton("Delete") { _, _ ->
                     val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
                     val editor = prefs.edit()
@@ -165,7 +173,7 @@ class MainActivity : AppCompatActivity() {
         val target = notebookList[position]
         AlertDialog.Builder(this)
             .setTitle("Delete Notebook")
-            .setMessage("Are you sure you want to delete '${target.title}'? This clears all page drawings.")
+            .setMessage("Are you sure you want to delete '${target.title}'?")
             .setPositiveButton("Delete") { _, _ ->
                 val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
                 prefs.edit().remove("note_data_${target.id}").apply()
@@ -194,39 +202,65 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    // Fixed: Opens a material share prompt sheet instead of copying directly to clipboard
-    private fun exportNotebookManifest() {
-        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-        val manifest = prefs.getString("notebook_manifest_list", "") ?: ""
-        if (manifest.isEmpty()) {
-            Toast.makeText(this, "Nothing to export", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
+    // Storage Access Framework Document Creators
+    private fun triggerSystemFileExport() {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, manifest)
+            putExtra(Intent.EXTRA_TITLE, "backup.xnotesbackup")
         }
-        startActivity(Intent.createChooser(shareIntent, "Export xNotes Backup"))
+        startActivityForResult(intent, REQUEST_CODE_EXPORT)
     }
 
-    // Fixed: Pulls latest data from clipboard pool safely to process the restore
-    private fun importNotebookManifest() {
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clipData = clipboard.primaryClip
-        if (clipData != null && clipData.itemCount > 0) {
-            val text = clipData.getItemAt(0).text.toString().trim()
-            if (text.contains("::") && text.contains("||")) {
+    private fun triggerSystemFileImport() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/plain"
+        }
+        startActivityForResult(intent, REQUEST_CODE_IMPORT)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != Activity.RESULT_OK || data == null) return
+
+        val fileUri: Uri = data.data ?: return
+
+        if (requestCode == REQUEST_CODE_EXPORT) {
+            try {
                 val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-                prefs.edit().putString("notebook_manifest_list", text).apply()
-                loadNotebookProfiles()
-                Toast.makeText(this, "Import successful!", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Invalid backup data layout format", Toast.LENGTH_SHORT).show()
+                val manifest = prefs.getString("notebook_manifest_list", "") ?: ""
+                contentResolver.openOutputStream(fileUri)?.use { outputStream ->
+                    outputStream.write(manifest.toByteArray())
+                }
+                Toast.makeText(this, "Backup saved to file successfully!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error saving backup file", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            Toast.makeText(this, "Clipboard is empty. Copy backup string first.", Toast.LENGTH_SHORT).show()
+        } else if (requestCode == REQUEST_CODE_IMPORT) {
+            try {
+                contentResolver.openInputStream(fileUri)?.use { inputStream ->
+                    val reader = BufferedReader(InputStreamReader(inputStream))
+                    val stringBuilder = StringBuilder()
+                    var line: String? = reader.readLine()
+                    while (line != null) {
+                        stringBuilder.append(line)
+                        line = reader.readLine()
+                    }
+                    val importedText = stringBuilder.toString().trim()
+                    
+                    if (importedText.contains("::") && importedText.contains("||")) {
+                        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+                        prefs.edit().putString("notebook_manifest_list", importedText).apply()
+                        loadNotebookProfiles()
+                        Toast.makeText(this, "Import successful!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this, "Invalid backup file structure layout format", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error reading import file source", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -315,6 +349,7 @@ class MainActivity : AppCompatActivity() {
         override fun getItemCount(): Int = items.size
     }
 
+    // Complete Rebuilt Visual Spectrum Picker Component Block
     private class ColorMixerView(context: Context) : View(context) {
         private val hsv = floatArrayOf(0f, 1f, 1f)
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -322,59 +357,61 @@ class MainActivity : AppCompatActivity() {
         private var selectY = -1f
 
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-            setMeasuredDimension(ViewGroup.LayoutParams.MATCH_PARENT, 400)
-        }
-
-        override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-            super.onSizeChanged(w, h, oldw, oldh)
-            updateSliderCoordinates()
-        }
-
-        private fun updateSliderCoordinates() {
-            if (width > 0) {
-                selectX = (hsv[0] / 360f) * width.toFloat()
-                selectY = (1f - hsv[1]) * (height.toFloat() - 60f)
-                invalidate()
-            }
+            setMeasuredDimension(ViewGroup.LayoutParams.MATCH_PARENT, 460)
         }
 
         override fun onDraw(canvas: Canvas) {
             val w = width.toFloat()
-            val h = height.toFloat()
-
-            if (selectX < 0f || selectY < 0f) {
-                selectX = w / 2f
-                selectY = (h - 60f) / 2f
-            }
-
+            
+            // Draw Main Horizontal Hue Gradient Wheel Track
             val colors = intArrayOf(Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED)
-            val shader = LinearGradient(0f, 0f, w, 0f, colors, null, Shader.TileMode.CLAMP)
-            paint.shader = shader
-            canvas.drawRect(0f, 0f, w, h - 60f, paint)
+            val hueShader = LinearGradient(0f, 0f, w, 0f, colors, null, Shader.TileMode.CLAMP)
+            paint.shader = hueShader
+            canvas.drawRect(0f, 20f, w, 180f, paint)
             paint.shader = null
 
+            // Draw Selector Thumb over Hue Ribbon
+            if (selectX < 0f) selectX = (hsv[0] / 360f) * w
             paint.color = Color.WHITE
             paint.style = Paint.Style.STROKE
             paint.strokeWidth = 6f
-            canvas.drawCircle(selectX, selectY, 18f, paint)
-
+            canvas.drawCircle(selectX, 100f, 24f, paint)
             paint.color = Color.BLACK
             paint.strokeWidth = 2f
-            canvas.drawCircle(selectX, selectY, 20f, paint)
+            canvas.drawCircle(selectX, 100f, 26f, paint)
 
+            // Draw Lower Value/Brightness Mod Track Bar
+            val currentHueColor = Color.HSVToColor(floatArrayOf(hsv[0], 1f, 1f))
+            val valShader = LinearGradient(0f, 0f, w, 0f, intArrayOf(Color.BLACK, currentHueColor, Color.WHITE), null, Shader.TileMode.CLAMP)
+            paint.shader = valShader
+            canvas.drawRect(0f, 240f, w, 360f, paint)
+            paint.shader = null
+
+            // Draw Value Selector Thumb over lower panel
+            if (selectY < 0f) selectY = hsv[2] * w // Map value space roughly over width axis dynamically
+            paint.color = Color.WHITE
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 6f
+            canvas.drawCircle(selectY, 300f, 24f, paint)
+
+            // Render Final Swatch Preview Plate Block Bottom Edge
             paint.style = Paint.Style.FILL
             paint.color = Color.HSVToColor(hsv)
-            canvas.drawRect(0f, h - 45f, w, h, paint)
+            canvas.drawRect(0f, 400f, w, 450f, paint)
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
             if (event.action == MotionEvent.ACTION_DOWN || event.action == MotionEvent.ACTION_MOVE) {
-                selectX = Math.max(0f, Math.min(event.x, width.toFloat() - 1f))
-                selectY = Math.max(0f, Math.min(event.y, height.toFloat() - 61f))
-                
-                hsv[0] = (selectX / width.toFloat()) * 360f
-                hsv[1] = 1f - (selectY / (height.toFloat() - 60f))
-                hsv[2] = 1f
+                val x = Math.max(0f, Math.min(event.x, width.toFloat()))
+                val y = event.y
+
+                if (y in 0f..210f) {
+                    selectX = x
+                    hsv[0] = (selectX / width.toFloat()) * 360f
+                } else if (y in 210f..380f) {
+                    selectY = x
+                    hsv[2] = selectY / width.toFloat() // Lightness distribution mapping modification
+                }
                 
                 invalidate()
                 return true
@@ -384,7 +421,9 @@ class MainActivity : AppCompatActivity() {
 
         fun setSelectedColor(color: Int) {
             Color.colorToHSV(color, hsv)
-            updateSliderCoordinates()
+            selectX = -1f
+            selectY = -1f
+            invalidate()
         }
 
         fun getSelectedColor(): Int = Color.HSVToColor(hsv)
