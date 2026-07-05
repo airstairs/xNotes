@@ -1,0 +1,385 @@
+package com.xthan.xnotes
+
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.Shader
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import java.util.UUID
+
+class MainActivity : AppCompatActivity() {
+
+    data class NotebookItem(val id: String, var title: String, var colorInt: Int, var isSelected: Boolean = false)
+
+    private val notebookList = mutableListOf<NotebookItem>()
+    private lateinit var adapter: NotebookAdapter
+    private lateinit var recyclerView: RecyclerView
+    
+    private lateinit var selectionContextBar: LinearLayout
+    private var isSelectionMode = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        selectionContextBar = findViewById(R.id.selectionContextBar)
+        recyclerView = findViewById(R.id.recyclerViewNotebooks)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        
+        adapter = NotebookAdapter(notebookList, 
+            onItemClick = { notebook, position ->
+                if (isSelectionMode) {
+                    notebook.isSelected = !notebook.isSelected
+                    adapter.notifyItemChanged(position)
+                } else {
+                    val intent = Intent(this, NoteEditorActivity::class.java).apply {
+                        putExtra("NOTEBOOK_ID", notebook.id)
+                        putExtra("NOTEBOOK_TITLE", notebook.title)
+                        putExtra("NOTEBOOK_COLOR", notebook.colorInt)
+                    }
+                    startActivity(intent)
+                }
+            },
+            onColorClick = { notebook, position ->
+                if (!isSelectionMode) {
+                    showVisualMixerColorPicker(notebook, position)
+                }
+            },
+            onDeleteClick = { position ->
+                // Individual direct delete target execution path
+                confirmDeleteNotebook(position)
+            }
+        )
+        recyclerView.adapter = adapter
+
+        loadNotebookProfiles()
+
+        findViewById<Button>(R.id.btnCreateNotebook).setOnClickListener {
+            showCreateNotebookDialog()
+        }
+
+        findViewById<Button>(R.id.btnExportBackup).setOnClickListener {
+            exportToClipboard()
+        }
+
+        findViewById<Button>(R.id.btnImportBackup).setOnClickListener {
+            importFromClipboard()
+        }
+
+        findViewById<Button>(R.id.btnManageThreads).setOnClickListener {
+            enterSelectionMode()
+        }
+
+        findViewById<Button>(R.id.btnCancelSelection).setOnClickListener {
+            exitSelectionMode()
+        }
+
+        findViewById<Button>(R.id.btnSelectAll).setOnClickListener {
+            val allChecked = notebookList.all { it.isSelected }
+            for (item in notebookList) {
+                item.isSelected = !allChecked
+            }
+            adapter.notifyDataSetChanged()
+        }
+
+        findViewById<Button>(R.id.btnConfirmMassDelete).setOnClickListener {
+            val selectedItems = notebookList.filter { it.isSelected }
+            if (selectedItems.isEmpty()) {
+                Toast.makeText(this, "No notes selected", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Delete Selected Threads")
+                .setMessage("Are you sure you want to delete ${selectedItems.size} selected notebooks? All internal pages will be lost.")
+                .setPositiveButton("Delete") { _, _ ->
+                    val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+                    val editor = prefs.edit()
+                    
+                    for (item in selectedItems) {
+                        editor.remove("note_data_${item.id}")
+                        notebookList.remove(item)
+                    }
+                    editor.apply()
+                    saveNotebookProfiles()
+                    exitSelectionMode()
+                    Toast.makeText(this, "Selected files deleted.", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun enterSelectionMode() {
+        isSelectionMode = true
+        selectionContextBar.visibility = View.VISIBLE
+        for (item in notebookList) item.isSelected = false
+        adapter.setSelectionModeEnabled(true)
+    }
+
+    private fun exitSelectionMode() {
+        isSelectionMode = false
+        selectionContextBar.visibility = View.GONE
+        for (item in notebookList) item.isSelected = false
+        adapter.setSelectionModeEnabled(false)
+    }
+
+    private fun showCreateNotebookDialog() {
+        val input = EditText(this).apply { hint = "Enter notebook name..." }
+        AlertDialog.Builder(this)
+            .setTitle("Create New Card")
+            .setView(input)
+            .setPositiveButton("Create") { _, _ ->
+                val name = input.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    val randomColor = (0xFF000000 or (Math.random() * 0x00FFFFFF).toLong()).toInt()
+                    val newNote = NotebookItem(UUID.randomUUID().toString(), name, randomColor)
+                    notebookList.add(newNote)
+                    saveNotebookProfiles()
+                    adapter.notifyItemInserted(notebookList.size - 1)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun confirmDeleteNotebook(position: Int) {
+        val target = notebookList[position]
+        AlertDialog.Builder(this)
+            .setTitle("Delete Notebook")
+            .setMessage("Are you sure you want to delete '${target.title}'? This clears all page drawings.")
+            .setPositiveButton("Delete") { _, _ ->
+                val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+                prefs.edit().remove("note_data_${target.id}").apply()
+                notebookList.removeAt(position)
+                saveNotebookProfiles()
+                adapter.notifyItemRemoved(position)
+                adapter.notifyItemRangeChanged(position, notebookList.size)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showVisualMixerColorPicker(notebook: NotebookItem, position: Int) {
+        val mixerView = ColorMixerView(this)
+        mixerView.setSelectedColor(notebook.colorInt)
+
+        AlertDialog.Builder(this)
+            .setTitle("Slide to Select Color")
+            .setView(mixerView)
+            .setPositiveButton("Select") { _, _ ->
+                notebook.colorInt = mixerView.getSelectedColor()
+                saveNotebookProfiles()
+                adapter.notifyItemChanged(position)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun exportToClipboard() {
+        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+        val manifest = prefs.getString("notebook_manifest_list", "") ?: ""
+        if (manifest.isEmpty()) {
+            Toast.makeText(this, "Nothing to export", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("xNotes Manifest Backup", manifest))
+        Toast.makeText(this, "Manifest copied to clipboard!", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun importFromClipboard() {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipData = clipboard.primaryClip
+        if (clipData != null && clipData.itemCount > 0) {
+            val text = clipData.getItemAt(0).text.toString().trim()
+            if (text.contains("::") && text.contains("||")) {
+                val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+                prefs.edit().putString("notebook_manifest_list", text).apply()
+                loadNotebookProfiles()
+                Toast.makeText(this, "Import successful!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Invalid backup data layout format", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun saveNotebookProfiles() {
+        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+        val sb = StringBuilder()
+        for (item in notebookList) {
+            sb.append("${item.id}::${item.title}::${item.colorInt}||")
+        }
+        prefs.edit().putString("notebook_manifest_list", sb.toString()).apply()
+    }
+
+    private fun loadNotebookProfiles() {
+        notebookList.clear()
+        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+        val rawData = prefs.getString("notebook_manifest_list", "") ?: ""
+        if (rawData.isNotEmpty()) {
+            val tokens = rawData.split("||")
+            for (token in tokens) {
+                if (token.isNotEmpty()) {
+                    val parts = token.split("::")
+                    if (parts.size == 3) {
+                        notebookList.add(NotebookItem(parts[0], parts[1], parts[2].toInt()))
+                    }
+                }
+            }
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!isSelectionMode) {
+            loadNotebookProfiles()
+        }
+    }
+
+    class NotebookAdapter(
+        private val items: List<NotebookItem>,
+        private val onItemClick: (NotebookItem, Int) -> Unit,
+        private val onColorClick: (NotebookItem, Int) -> Unit,
+        private val onDeleteClick: (Int) -> Unit
+    ) : RecyclerView.Adapter<NotebookAdapter.ViewHolder>() {
+
+        private var showCheckBoxes = false
+
+        fun setSelectionModeEnabled(enabled: Boolean) {
+            showCheckBoxes = enabled
+            notifyDataSetChanged()
+        }
+
+        class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+            val iconCard: FrameLayout = v.findViewById(R.id.notebookIconCard)
+            val iconText: TextView = v.findViewById(R.id.notebookIconText)
+            val titleText: TextView = v.findViewById(R.id.txtNotebookTitle)
+            val clickArea: View = v.findViewById(R.id.lnrTextClickArea)
+            val checkBox: CheckBox = v.findViewById(R.id.notebookSelectionCheck)
+            val deleteButton: Button = v.findViewById(R.id.btnDeleteNotebook)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_notebook_card, parent, false)
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = items[position]
+            holder.titleText.text = item.title
+            holder.iconCard.setBackgroundColor(item.colorInt)
+            holder.iconText.text = "X"
+
+            if (showCheckBoxes) {
+                holder.checkBox.visibility = View.VISIBLE
+                holder.checkBox.isChecked = item.isSelected
+                holder.deleteButton.visibility = View.GONE // Hide individual button during mass mode
+            } else {
+                holder.checkBox.visibility = View.GONE
+                holder.deleteButton.visibility = View.VISIBLE // Keep it active for everyday immediate access
+            }
+
+            holder.clickArea.setOnClickListener { onItemClick(item, position) }
+            holder.iconCard.setOnClickListener { onColorClick(item, position) }
+            holder.deleteButton.setOnClickListener { onDeleteClick(position) }
+        }
+
+        override fun getItemCount(): Int = items.size
+    }
+
+    private class ColorMixerView(context: Context) : View(context) {
+        private val hsv = floatArrayOf(0f, 1f, 1f)
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private var selectX = -1f
+        private var selectY = -1f
+
+        override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            setMeasuredDimension(ViewGroup.LayoutParams.MATCH_PARENT, 400)
+        }
+
+        override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+            super.onSizeChanged(w, h, oldw, oldh)
+            updateSliderCoordinates()
+        }
+
+        private fun updateSliderCoordinates() {
+            if (width > 0) {
+                selectX = (hsv[0] / 360f) * width.toFloat()
+                selectY = (1f - hsv[1]) * (height.toFloat() - 60f)
+                invalidate()
+            }
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            val w = width.toFloat()
+            val h = height.toFloat()
+
+            if (selectX < 0f || selectY < 0f) {
+                selectX = w / 2f
+                selectY = (h - 60f) / 2f
+            }
+
+            val colors = intArrayOf(Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA, Color.RED)
+            val shader = LinearGradient(0f, 0f, w, 0f, colors, null, Shader.TileMode.CLAMP)
+            paint.shader = shader
+            canvas.drawRect(0f, 0f, w, h - 60f, paint)
+            paint.shader = null
+
+            paint.color = Color.WHITE
+            paint.style = Paint.Style.STROKE
+            paint.strokeWidth = 6f
+            canvas.drawCircle(selectX, selectY, 18f, paint)
+
+            paint.color = Color.BLACK
+            paint.strokeWidth = 2f
+            canvas.drawCircle(selectX, selectY, 20f, paint)
+
+            paint.style = Paint.Style.FILL
+            paint.color = Color.HSVToColor(hsv)
+            canvas.drawRect(0f, h - 45f, w, h, paint)
+        }
+
+        override fun onTouchEvent(event: MotionEvent): Boolean {
+            if (event.action == MotionEvent.ACTION_DOWN || event.action == MotionEvent.ACTION_MOVE) {
+                selectX = Math.max(0f, Math.min(event.x, width.toFloat() - 1f))
+                selectY = Math.max(0f, Math.min(event.y, height.toFloat() - 61f))
+                
+                hsv[0] = (selectX / width.toFloat()) * 360f
+                hsv[1] = 1f - (selectY / (height.toFloat() - 60f))
+                hsv[2] = 1f
+                
+                invalidate()
+                return true
+            }
+            return super.onTouchEvent(event)
+        }
+
+        fun setSelectedColor(color: Int) {
+            Color.colorToHSV(color, hsv)
+            updateSliderCoordinates()
+        }
+
+        fun getSelectedColor(): Int = Color.HSVToColor(hsv)
+    }
+}
