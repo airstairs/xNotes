@@ -68,7 +68,6 @@ class NoteEditorActivity : AppCompatActivity() {
                 true
             }
             
-            // Force icons/emojis to render inside native dropdown items via internal reflection
             try {
                 val fields = popup.javaClass.getDeclaredFields()
                 for (field in fields) {
@@ -114,7 +113,6 @@ class NoteEditorActivity : AppCompatActivity() {
                 true
             }
 
-            // Force icons/emojis to render inside native dropdown items via internal reflection
             try {
                 val fields = popup.javaClass.getDeclaredFields()
                 for (field in fields) {

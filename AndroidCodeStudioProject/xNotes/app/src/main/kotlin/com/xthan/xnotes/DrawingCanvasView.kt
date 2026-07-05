@@ -20,7 +20,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     var isEraserMode = false
     private var currentPoints = StringBuilder()
 
-    // Fixed Standard 8.5 x 11 Letter Proportion grid dimensions to safeguard cross-device portability
+    // Fixed Standard 8.5 x 11 Letter Proportion grid dimensions
     val paperWidth = 850f
     val paperHeight = 1100f
 
@@ -39,6 +39,10 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     private var lastTouchY = 0f
     private var isPanning = false
 
+    // Multi-touch tracking states for Undo tracking
+    private var secondaryPointerSpawned = false
+    private var suppressDrawingForGesture = false
+
     var onStrokeAdded: (() -> Unit)? = null
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -49,22 +53,28 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     fun resetZoomAndPan() {
         if (width == 0 || height == 0) return
 
-        // Calculate maximum aspect-fit ratios inside standard viewport boundaries
         val scaleX = width.toFloat() / paperWidth
         val scaleY = height.toFloat() / paperHeight
         scaleFactor = Math.min(scaleX, scaleY)
         
-        // Evenly balance off-center empty spaces for horizontal and vertical layouts
         translateX = (width.toFloat() - (paperWidth * scaleFactor)) / 2f
         translateY = (height.toFloat() - (paperHeight * scaleFactor)) / 2f
         
         invalidate()
     }
 
+    // Public Undo macro function called by touch systems or external hooks
+    fun undoLastStroke() {
+        if (pages[currentPageIndex].isNotEmpty()) {
+            pages[currentPageIndex].removeAt(pages[currentPageIndex].size - 1)
+            invalidate()
+            onStrokeAdded?.invoke() // Triggers autosave state sync
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
-        // Render neutral presentation gray onto host background workspace
         canvas.drawColor(Color.parseColor("#E0E0E0"))
 
         canvas.save()
@@ -73,14 +83,12 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         transformMatrix.postTranslate(translateX, translateY)
         canvas.concat(transformMatrix)
 
-        // Draw standard white canvas paper boundary sheet
         val paperPaint = Paint().apply {
             color = Color.WHITE
             style = Paint.Style.FILL
         }
         canvas.drawRect(0f, 0f, paperWidth, paperHeight, paperPaint)
 
-        // Draw crisp framing borders
         val borderPaint = Paint().apply {
             color = Color.parseColor("#9E9E9E")
             style = Paint.Style.STROKE
@@ -89,14 +97,13 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         }
         canvas.drawRect(0f, 0f, paperWidth, paperHeight, borderPaint)
 
-        // Render page vector strokes
         for (stroke in pages[currentPageIndex]) {
             val path = strokeToPath(stroke.pointsStr)
             val paint = createPaint(stroke.color, stroke.width)
             canvas.drawPath(path, paint)
         }
 
-        if (currentPoints.isNotEmpty()) {
+        if (currentPoints.isNotEmpty() && !suppressDrawingForGesture) {
             val currentPath = strokeToPath(currentPoints.toString())
             val currentPaint = createPaint(currentPenColor, currentPenSize)
             canvas.drawPath(currentPath, currentPaint)
@@ -168,11 +175,21 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         gestureDetector.onTouchEvent(event)
         scaleDetector.onTouchEvent(event)
 
+        val action = event.actionMasked
+
+        // Track dual-finger system interactions
         if (event.pointerCount > 1) {
             isPanning = true
-            currentPoints.setLength(0)
+            suppressDrawingForGesture = true
+            currentPoints.setLength(0) // Wipe out partial artifacts instantly
             
-            val action = event.actionMasked
+            if (action == MotionEvent.ACTION_POINTER_DOWN) {
+                // Secondary cursor down detected! Flag it for a possible undo match.
+                if (event.pointerCount == 2) {
+                    secondaryPointerSpawned = true
+                }
+            }
+            
             if (action == MotionEvent.ACTION_MOVE) {
                 if (!scaleDetector.isInProgress) {
                     val x = event.getX(0)
@@ -182,27 +199,41 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                     invalidate()
                     lastTouchX = x
                     lastTouchY = y
+                    
+                    // If fingers start dragging significant distances, it's a pan, not a clean tap.
+                    secondaryPointerSpawned = false
                 }
-            } else if (action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_POINTER_UP) {
+            } else if (action == MotionEvent.ACTION_POINTER_UP) {
                 lastTouchX = event.getX(0)
                 lastTouchY = event.getY(0)
             }
             return true
         }
 
-        if (event.action == MotionEvent.ACTION_DOWN) {
+        if (action == MotionEvent.ACTION_DOWN) {
             isPanning = false
+            secondaryPointerSpawned = false
+            suppressDrawingForGesture = false
             lastTouchX = event.x
             lastTouchY = event.y
         }
 
         if (isPanning) {
-            if (event.action == MotionEvent.ACTION_UP) {
+            if (action == MotionEvent.ACTION_UP) {
+                val wasTwoFingerTapGesture = secondaryPointerSpawned
                 isPanning = false
+                secondaryPointerSpawned = false
+                suppressDrawingForGesture = false
+                
+                if (wasTwoFingerTapGesture) {
+                    undoLastStroke()
+                    return true
+                }
             }
             return true
         }
 
+        // Map drawing inputs into standard coordinates matching the transformation matrices
         transformMatrix.reset()
         transformMatrix.postScale(scaleFactor, scaleFactor)
         transformMatrix.postTranslate(translateX, translateY)
@@ -213,11 +244,10 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         val mappedX = pts[0]
         val mappedY = pts[1]
 
-        // Boundary bounding validation rule
         val isInsidePaper = mappedX in 0f..paperWidth && mappedY in 0f..paperHeight
 
         if (isEraserMode) {
-            if (isInsidePaper && (event.action == MotionEvent.ACTION_MOVE || event.action == MotionEvent.ACTION_DOWN)) {
+            if (isInsidePaper && (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_DOWN)) {
                 val iterator = pages[currentPageIndex].iterator()
                 var modified = false
                 while (iterator.hasNext()) {
@@ -235,7 +265,9 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             return true
         }
 
-        when (event.action) {
+        if (suppressDrawingForGesture) return true
+
+        when (action) {
             MotionEvent.ACTION_DOWN -> {
                 if (isInsidePaper) {
                     currentPoints.setLength(0)
