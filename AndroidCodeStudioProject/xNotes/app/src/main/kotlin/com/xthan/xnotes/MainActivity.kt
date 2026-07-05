@@ -65,7 +65,6 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             onDeleteClick = { position ->
-                // Individual direct delete target execution path
                 confirmDeleteNotebook(position)
             }
         )
@@ -78,11 +77,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.btnExportBackup).setOnClickListener {
-            exportToClipboard()
+            exportNotebookManifest()
         }
 
         findViewById<Button>(R.id.btnImportBackup).setOnClickListener {
-            importFromClipboard()
+            importNotebookManifest()
         }
 
         findViewById<Button>(R.id.btnManageThreads).setOnClickListener {
@@ -195,19 +194,25 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun exportToClipboard() {
+    // Fixed: Opens a material share prompt sheet instead of copying directly to clipboard
+    private fun exportNotebookManifest() {
         val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
         val manifest = prefs.getString("notebook_manifest_list", "") ?: ""
         if (manifest.isEmpty()) {
             Toast.makeText(this, "Nothing to export", Toast.LENGTH_SHORT).show()
             return
         }
-        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("xNotes Manifest Backup", manifest))
-        Toast.makeText(this, "Manifest copied to clipboard!", Toast.LENGTH_SHORT).show()
+
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, manifest)
+        }
+        startActivity(Intent.createChooser(shareIntent, "Export xNotes Backup"))
     }
 
-    private fun importFromClipboard() {
+    // Fixed: Pulls latest data from clipboard pool safely to process the restore
+    private fun importNotebookManifest() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clipData = clipboard.primaryClip
         if (clipData != null && clipData.itemCount > 0) {
@@ -220,6 +225,8 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Invalid backup data layout format", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            Toast.makeText(this, "Clipboard is empty. Copy backup string first.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -294,10 +301,10 @@ class MainActivity : AppCompatActivity() {
             if (showCheckBoxes) {
                 holder.checkBox.visibility = View.VISIBLE
                 holder.checkBox.isChecked = item.isSelected
-                holder.deleteButton.visibility = View.GONE // Hide individual button during mass mode
+                holder.deleteButton.visibility = View.GONE
             } else {
                 holder.checkBox.visibility = View.GONE
-                holder.deleteButton.visibility = View.VISIBLE // Keep it active for everyday immediate access
+                holder.deleteButton.visibility = View.VISIBLE
             }
 
             holder.clickArea.setOnClickListener { onItemClick(item, position) }

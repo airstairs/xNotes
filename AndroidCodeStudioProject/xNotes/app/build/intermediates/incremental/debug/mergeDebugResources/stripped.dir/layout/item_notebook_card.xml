@@ -29,23 +29,12 @@
             android:textSize="14sp"/>
     </FrameLayout>
 
-    <!-- Selection Checkbox (Visible ONLY during Thread Management Mode) -->
-    <CheckBox
-        android:id="@+id/notebookSelectionCheck"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true"
-        android:visibility="gone"
-        android:focusable="false"
-        android:clickable="false"/>
-
-    <!-- Individual Delete Row Button (Always Visible next to notebook name) -->
+    <!-- Individual Delete Row Button (Fixed directly to Parent Edge) -->
     <Button
         android:id="@+id/btnDeleteNotebook"
         android:layout_width="44dp"
         android:layout_height="44dp"
-        android:layout_toStartOf="@id/notebookSelectionCheck"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:text="✕"
         android:textSize="14sp"
@@ -53,6 +42,17 @@
         android:textColor="#FFFFFF"
         android:padding="0dp"
         android:layout_marginEnd="4dp"/>
+
+    <!-- Selection Checkbox (Anchored cleanly to the left of the delete button) -->
+    <CheckBox
+        android:id="@+id/notebookSelectionCheck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/btnDeleteNotebook"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        android:focusable="false"
+        android:clickable="false"/>
 
     <!-- Large Clickable Target Frame Wrapper for Notebook Opening -->
     <LinearLayout

@@ -85,16 +85,18 @@
 
     </LinearLayout>
 
-    <!-- Main Workspace Drawing Canvas -->
+    <!-- Main Workspace Drawing Canvas (Fixed to clear bottom buttons) -->
     <com.xthan.xnotes.DrawingCanvasView
         android:id="@+id/drawingCanvas"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/topToolbar"
+        android:layout_above="@+id/bottomControllerLayer"
         android:background="#FFFFFF" />
 
     <!-- Clean Bottom Row Controller Layer -->
     <RelativeLayout
+        android:id="@+id/bottomControllerLayer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

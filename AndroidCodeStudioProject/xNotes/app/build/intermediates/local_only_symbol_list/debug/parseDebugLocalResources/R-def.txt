@@ -4,6 +4,7 @@ drawable ic_launcher
 drawable ic_launcher_background
 drawable ic_launcher_foreground
 drawable rounded_white_circle_bg
+id bottomControllerLayer
 id btnAddPage
 id btnCancelSelection
 id btnConfirmMassDelete
