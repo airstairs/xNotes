@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class NoteEditorActivity : AppCompatActivity() {
 
@@ -33,6 +34,14 @@ class NoteEditorActivity : AppCompatActivity() {
         canvasView.loadFromSerializedString(savedData)
 
         canvasView.onStrokeAdded = { autoSaveData() }
+
+        // Wire up Floating Action Buttons for immediate dedicated execution
+        findViewById<FloatingActionButton>(R.id.fabUndo).setOnClickListener {
+            canvasView.undoLastStroke()
+        }
+        findViewById<FloatingActionButton>(R.id.fabRedo).setOnClickListener {
+            canvasView.redoLastStroke()
+        }
 
         // Setup Dropdown Popup Menu for Tools & Colors with crisp square glyphs
         val btnToolsMenu = findViewById<Button>(R.id.btnToolsMenu)
@@ -83,7 +92,6 @@ class NoteEditorActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            
             popup.show()
         }
 
@@ -128,7 +136,6 @@ class NoteEditorActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            
             popup.show()
         }
 

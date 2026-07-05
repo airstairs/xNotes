@@ -13,10 +13,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     data class StrokeData(val pointsStr: String, val color: Int, val width: Float)
 
     val pages = mutableListOf<MutableList<StrokeData>>(mutableListOf())
-    
-    // REDO ENGINE: Tracking history per page to save undone strokes
     val redoPages = mutableListOf<MutableList<StrokeData>>(mutableListOf())
-    
     var currentPageIndex = 0
 
     var currentPenColor = Color.BLACK
@@ -40,6 +37,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     private var lastTouchX = 0f
     private var lastTouchY = 0f
     private var isPanning = false
+    private var ignoreCurrentStroke = false
 
     var onStrokeAdded: (() -> Unit)? = null
 
@@ -50,30 +48,34 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     fun resetZoomAndPan() {
         if (width == 0 || height == 0) return
-
         val scaleX = width.toFloat() / paperWidth
         val scaleY = height.toFloat() / paperHeight
         scaleFactor = Math.min(scaleX, scaleY)
-        
         translateX = (width.toFloat() - (paperWidth * scaleFactor)) / 2f
         translateY = (height.toFloat() - (paperHeight * scaleFactor)) / 2f
-        
         invalidate()
     }
 
-    // Dynamic execution logic to pop items back onto the active stroke layout
-    fun redoLastStroke(): Boolean {
+    fun undoLastStroke() {
+        val activeList = pages.getOrNull(currentPageIndex)
+        val redoList = redoPages.getOrNull(currentPageIndex)
+        if (!activeList.isNullOrEmpty() && redoList != null) {
+            val removed = activeList.removeAt(activeList.size - 1)
+            redoList.add(removed)
+            invalidate()
+            onStrokeAdded?.invoke()
+        }
+    }
+
+    fun redoLastStroke() {
         val targetRedoList = redoPages.getOrNull(currentPageIndex)
         val targetActiveList = pages.getOrNull(currentPageIndex)
-        
         if (!targetRedoList.isNullOrEmpty() && targetActiveList != null) {
             val restoredStroke = targetRedoList.removeAt(targetRedoList.size - 1)
             targetActiveList.add(restoredStroke)
             invalidate()
             onStrokeAdded?.invoke()
-            return true
         }
-        return false
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -106,13 +108,12 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             canvas.drawPath(path, paint)
         }
 
-        if (currentPoints.isNotEmpty()) {
+        if (currentPoints.isNotEmpty() && !ignoreCurrentStroke) {
             val currentPath = strokeToPath(currentPoints.toString())
             val currentPaint = createPaint(currentPenColor, currentPenSize)
             canvas.drawPath(currentPath, currentPaint)
         }
         canvas.restore()
-
         drawViewportScrollbars(canvas)
     }
 
@@ -179,37 +180,27 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         scaleDetector.onTouchEvent(event)
 
         val pointerCount = event.pointerCount
+        val action = event.actionMasked
 
-        // 1. GESTURE MACRO: 3-Finger Tap to REDO
-        if (pointerCount == 3 && event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
-            currentPoints.setLength(0) // Cancel any partial line drawing
+        if (pointerCount > 1) {
+            ignoreCurrentStroke = true
+            currentPoints.setLength(0)
+        }
+
+        if (pointerCount == 3 && action == MotionEvent.ACTION_POINTER_DOWN) {
             isPanning = true
             redoLastStroke()
             return true
         }
 
-        // 2. GESTURE MACRO: 2-Finger Tap to UNDO
-        if (pointerCount == 2 && event.actionMasked == MotionEvent.ACTION_POINTER_DOWN) {
-            currentPoints.setLength(0) // Cancel any partial line drawing
+        if (pointerCount == 2 && action == MotionEvent.ACTION_POINTER_DOWN) {
             isPanning = true
-            
-            val activeList = pages.getOrNull(currentPageIndex)
-            val redoList = redoPages.getOrNull(currentPageIndex)
-            if (!activeList.isNullOrEmpty() && redoList != null) {
-                val removed = activeList.removeAt(activeList.size - 1)
-                redoList.add(removed) // Save into redo history branch
-                invalidate()
-                onStrokeAdded?.invoke()
-            }
+            undoLastStroke()
             return true
         }
 
-        // Handle normal zoom/panning navigation transitions
         if (pointerCount > 1) {
             isPanning = true
-            currentPoints.setLength(0)
-            
-            val action = event.actionMasked
             if (action == MotionEvent.ACTION_MOVE && pointerCount == 2) {
                 if (!scaleDetector.isInProgress) {
                     val x = event.getX(0)
@@ -229,13 +220,15 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
         if (event.action == MotionEvent.ACTION_DOWN) {
             isPanning = false
+            ignoreCurrentStroke = false
             lastTouchX = event.x
             lastTouchY = event.y
         }
 
-        if (isPanning) {
+        if (isPanning || ignoreCurrentStroke) {
             if (event.action == MotionEvent.ACTION_UP) {
                 isPanning = false
+                ignoreCurrentStroke = false
             }
             return true
         }
@@ -280,22 +273,21 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                 }
             }
             MotionEvent.ACTION_MOVE -> {
-                if (currentPoints.isNotEmpty() && isInsidePaper) {
+                if (currentPoints.isNotEmpty() && isInsidePaper && !ignoreCurrentStroke) {
                     currentPoints.append(",$mappedX,$mappedY")
                     invalidate()
                 }
             }
             MotionEvent.ACTION_UP -> {
-                if (currentPoints.isNotEmpty()) {
+                if (currentPoints.isNotEmpty() && !ignoreCurrentStroke) {
                     pages[currentPageIndex].add(StrokeData(currentPoints.toString(), currentPenColor, currentPenSize))
-                    
-                    // Clear the redo page index list completely when a new line is drawn manually
                     redoPages[currentPageIndex].clear()
-                    
                     currentPoints.setLength(0)
                     invalidate()
                     onStrokeAdded?.invoke()
                 }
+                ignoreCurrentStroke = false
+                isPanning = false
             }
         }
         return true

@@ -1,93 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="#E0E0E0">
 
-    <!-- Compact No-Scroll Main Ribbon -->
+    <!-- Top Action Control Toolbar Bar -->
     <LinearLayout
+        android:id="@+id/toolbarContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#EEEEEE"
-        android:padding="6dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:padding="8dp">
 
         <Button
             android:id="@+id/btnToolsMenu"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="✏️ Tools"
-            android:textSize="12sp"
-            android:padding="4dp"/>
+            android:text="⬛ Black"
+            android:layout_marginEnd="4dp"
+            style="?android:attr/buttonStyleSmall"/>
 
         <Button
             android:id="@+id/btnSizesMenu"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="📐 Size"
-            android:textSize="12sp"
-            android:padding="4dp"
-            android:layout_marginStart="4dp"/>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:background="#999999"
-            android:layout_marginHorizontal="6dp"/>
+            android:text="📐 8px"
+            android:layout_marginEnd="4dp"
+            style="?android:attr/buttonStyleSmall"/>
 
         <Button
             android:id="@+id/btnPrevPage"
-            android:layout_width="36dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="&lt;"
-            android:padding="0dp"/>
+            android:text="◀"
+            android:layout_marginEnd="4dp"
+            style="?android:attr/buttonStyleSmall"/>
 
         <TextView
             android:id="@+id/txtPageIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="1/1"
-            android:textSize="13sp"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:paddingHorizontal="6dp"
-            android:gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="8dp"/>
 
         <Button
             android:id="@+id/btnNextPage"
-            android:layout_width="36dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="&gt;"
-            android:padding="0dp"/>
+            android:text="▶"
+            android:layout_marginEnd="4dp"
+            style="?android:attr/buttonStyleSmall"/>
 
         <Button
             android:id="@+id/btnAddPage"
-            android:layout_width="36dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF"
-            android:padding="0dp"
-            android:layout_marginStart="4dp"/>
+            android:text="➕ Page"
+            android:layout_marginEnd="4dp"
+            style="?android:attr/buttonStyleSmall"/>
 
         <Button
             android:id="@+id/btnDeletePage"
-            android:layout_width="36dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🗑️"
-            android:backgroundTint="#F44336"
-            android:textColor="#FFFFFF"
-            android:padding="0dp"
-            android:layout_marginStart="4dp"/>
-
+            android:text="🗑"
+            style="?android:attr/buttonStyleSmall"/>
     </LinearLayout>
 
+    <!-- Infinite Zoomable Vector Sketch Canvas View Window -->
     <com.xthan.xnotes.DrawingCanvasView
         android:id="@+id/drawingCanvas"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#FFFFFF" />
-        
-</LinearLayout>
+        android:layout_below="@id/toolbarContainer" />
+
+    <!-- Dedicated Floating Circular Control Deck (Bottom Right Corner) -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:gravity="center">
+
+        <!-- Mini Floating Action Redo Circle Button (Now on Left) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabRedo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:fabSize="mini"
+            app:backgroundTint="#212121"
+            app:tint="#FFFFFF"
+            android:contentDescription="Redo Stroke"
+            app:srcCompat="@android:drawable/ic_menu_forward" />
+
+        <!-- Mini Floating Action Undo Circle Button (Now on Right) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabUndo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            app:fabSize="mini"
+            app:backgroundTint="#212121"
+            app:tint="#FFFFFF"
+            android:contentDescription="Undo Stroke"
+            app:srcCompat="@android:drawable/ic_menu_revert" />
+            
+    </LinearLayout>
+
+</RelativeLayout>
