@@ -2,6 +2,7 @@ package com.xthan.xnotes
 
 import com.xthan.xnotes.R
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -178,7 +179,6 @@ class NoteEditorActivity : AppCompatActivity() {
             if (canvasView.nextPage()) updatePageIndicator()
         }
 
-        // Safe fallback check for layout integration linking
         val jumpResId = resources.getIdentifier("btnJumpPage", "id", packageName)
         if (jumpResId != 0) {
             findViewById<Button>(jumpResId).setOnClickListener {
@@ -213,6 +213,19 @@ class NoteEditorActivity : AppCompatActivity() {
         }
 
         updatePageIndicator()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent) 
+        
+        val id = intent.getStringExtra("NOTEBOOK_ID")
+        val title = intent.getStringExtra("NOTEBOOK_TITLE")
+        
+        if (id != null) {
+            // Ensure this method is defined in your class or linked appropriately
+            loadNotebookData(id, title ?: "Notebook") 
+        }
     }
 
     private fun showJumpWithThumbnailsDialog() {
@@ -257,13 +270,11 @@ class NoteEditorActivity : AppCompatActivity() {
             text.text = "Page ${position + 1}"
             text.textSize = 18f
 
-            // Create bitmap matching aspect ratio of paperWidth (850) and paperHeight (1100)
             val width = 120
             val height = 155
             val thumbBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(thumbBitmap)
 
-            // Canvas sheet styling backgrounds
             canvas.drawColor(Color.parseColor("#E0E0E0"))
             val innerPaint = Paint().apply {
                 color = Color.WHITE
@@ -271,10 +282,8 @@ class NoteEditorActivity : AppCompatActivity() {
             }
             canvas.drawRect(4f, 4f, (width - 4).toFloat(), (height - 4).toFloat(), innerPaint)
 
-            // Extract stroke list targeting array index safely
             val originalPagePaths = canvasView.pages.getOrNull(position)
             if (originalPagePaths != null && originalPagePaths.isNotEmpty()) {
-                // Map coordinates using hardcoded canvas base rules limits
                 val scaleX = (width - 8).toFloat() / canvasView.paperWidth
                 val scaleY = (height - 8).toFloat() / canvasView.paperHeight
                 val minScale = Math.min(scaleX, scaleY)
@@ -290,12 +299,10 @@ class NoteEditorActivity : AppCompatActivity() {
                     isAntiAlias = true
                 }
 
-                // Loop through strokes using the matching properties found in DrawingCanvasView
                 for (stroke in originalPagePaths) {
                     previewPaint.color = stroke.color
                     previewPaint.strokeWidth = stroke.width
                     
-                    // Direct stroke string parsing conversion matching drawing view architecture
                     val path = Path()
                     val tokens = stroke.pointsStr.split(",")
                     if (tokens.size >= 2) {
@@ -310,7 +317,6 @@ class NoteEditorActivity : AppCompatActivity() {
                 }
                 canvas.restore()
             } else {
-                // If the page is blank, draw a clean subtle text placeholder
                 val textPaint = Paint().apply {
                     color = Color.parseColor("#CCCCCC")
                     textSize = 28f
@@ -386,5 +392,10 @@ class NoteEditorActivity : AppCompatActivity() {
         val current = canvasView.currentPageIndex + 1
         val total = canvasView.getPageCount()
         pageIndicator.text = "$current/$total"
+    }
+
+    // Ensure this method is defined in your class to handle the load logic triggered by onNewIntent
+    private fun loadNotebookData(id: String, title: String) {
+        // Implement your data loading logic here
     }
 }

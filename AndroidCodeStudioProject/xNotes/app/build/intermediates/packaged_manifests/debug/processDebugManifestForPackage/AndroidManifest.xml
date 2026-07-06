@@ -35,9 +35,8 @@
         <activity
             android:name="com.xthan.xnotes.NoteEditorActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:documentLaunchMode="always"
             android:exported="false"
-            android:resizeableActivity="true" />
+            android:launchMode="standard" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

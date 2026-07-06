@@ -14,10 +14,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".NoteEditorActivity"
-            android:documentLaunchMode="always"
+        <activity 
+            android:name=".NoteEditorActivity"
+            android:launchMode="standard"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:resizeableActivity="true"
             android:exported="false" />
         
         <provider

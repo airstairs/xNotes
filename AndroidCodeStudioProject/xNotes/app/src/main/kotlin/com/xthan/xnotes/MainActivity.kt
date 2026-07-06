@@ -29,10 +29,10 @@ class MainActivity : AppCompatActivity() {
         Color.BLACK, 
         Color.RED, 
         Color.BLUE, 
-        Color.parseColor("#4CAF50"), // Clean Green
-        Color.parseColor("#FFEB3B"), // Clean Yellow
-        Color.parseColor("#9C27B0"), // Clean Purple
-        Color.parseColor("#FF9800"), // Clean Orange
+        Color.parseColor("#4CAF50"), 
+        Color.parseColor("#FFEB3B"), 
+        Color.parseColor("#9C27B0"), 
+        Color.parseColor("#FF9800"), 
         Color.GRAY
     )
 
@@ -230,7 +230,6 @@ class MainActivity : AppCompatActivity() {
                 for ((index, noteName) in savedList.withIndex()) {
                     if (index > 0) combinedData.append("##NOTE_BREAK##")
                     val noteData = prefs.getString("note_data_$noteName", "") ?: ""
-                    // Append color configuration payload to export file format
                     val noteColor = prefs.getInt("note_color_$noteName", Color.GRAY)
                     combinedData.append("$noteName##NOTE_SPLIT##$noteData##COLOR_SPLIT##$noteColor")
                 }
@@ -410,13 +409,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openNotebook(id: String, title: String) {
-        val intent = Intent(this, NoteEditorActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-            addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-            putExtra("NOTEBOOK_ID", id)
-            putExtra("NOTEBOOK_TITLE", title)
-            data = Uri.parse("notebook://open/$id")
-        }
-        startActivity(intent)
+    val intent = Intent(this, NoteEditorActivity::class.java).apply {
+        // Using NEW_DOCUMENT alone allows Android to find and reorder 
+        // an existing task if the data URI matches.
+        addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+        
+        // This URI is the "key" Android uses to identify the specific document.
+        data = Uri.parse("xnotes://notebook/$id")
+        
+        putExtra("NOTEBOOK_ID", id)
+        putExtra("NOTEBOOK_TITLE", title)
     }
+    startActivity(intent)
+}
 }

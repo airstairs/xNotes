@@ -103,16 +103,14 @@ ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidMan
 		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:13:27-74
 activity#com.xthan.xnotes.NoteEditorActivity
 ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:17:9-21:40
+	android:launchMode
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:19:13-42
 	android:exported
 		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:21:13-37
-	android:resizeableActivity
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:20:13-46
 	android:configChanges
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:19:13-74
-	android:documentLaunchMode
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:18:13-48
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:20:13-74
 	android:name
-		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:17:19-53
+		ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:18:13-47
 provider#androidx.core.content.FileProvider
 ADDED from /storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml:23:9-31:20
 	android:grantUriPermissions
