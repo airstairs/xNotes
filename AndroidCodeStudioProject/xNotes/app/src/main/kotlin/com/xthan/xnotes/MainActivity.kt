@@ -182,7 +182,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             val btnDelete = Button(this).apply {
-                text = "X"
+                text = "🗑️"
                 backgroundTintList = android.content.res.ColorStateList.valueOf(Color.RED)
                 setOnClickListener {
                     AlertDialog.Builder(context)

@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId 'com.xthan.xnotes'
         minSdk 21
-        targetSdk 34
+        targetSdk 35 // Updated to 35 to meet Play Console requirements
         versionCode 1
         versionName '1.0'
 

@@ -2,7 +2,6 @@ package com.xthan.xnotes
 
 import com.xthan.xnotes.R
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -13,13 +12,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.ListView
-import android.widget.PopupMenu
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
@@ -50,53 +43,38 @@ class NoteEditorActivity : AppCompatActivity() {
 
         canvasView.onStrokeAdded = { autoSaveData() }
 
-        // Setup custom dynamic Recents Switcher card branding setup
         val noteColor = prefs.getInt("note_color_$notebookId", Color.GRAY)
         setupRecentsCardStyle(title, noteColor)
 
-        // Floating Action Buttons Click Listeners
-        findViewById<Button>(R.id.btnUndo).setOnClickListener {
-            canvasView.undoLastStroke()
-        }
+        findViewById<Button>(R.id.btnUndo).setOnClickListener { canvasView.undoLastStroke() }
+        findViewById<Button>(R.id.btnRedo).setOnClickListener { canvasView.redoLastStroke() }
+        findViewById<Button>(R.id.btnZoomReset).setOnClickListener { canvasView.resetZoomAndPan() }
 
-        findViewById<Button>(R.id.btnRedo).setOnClickListener {
-            canvasView.redoLastStroke()
-        }
-
-        findViewById<Button>(R.id.btnZoomReset).setOnClickListener {
-            canvasView.resetZoomAndPan()
-        }
-
-        // Setup Dropdown Popup Menu for Tools & Colors
         val btnToolsMenu = findViewById<Button>(R.id.btnToolsMenu)
         btnToolsMenu.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
             popup.menu.add(0, 1, 0, "⬛ Black Pencil")
             popup.menu.add(0, 2, 0, "🟥 Red Pencil")
             popup.menu.add(0, 3, 0, "🟦 Blue Pencil")
-            popup.menu.add(0, 4, 0, "🧼 Eraser Mode")
+            popup.menu.add(0, 4, 0, "🟧 Orange Pencil")
+            popup.menu.add(0, 5, 0, "🟨 Yellow Pencil")
+            popup.menu.add(0, 6, 0, "🟩 Green Pencil")
+            popup.menu.add(0, 7, 0, "🟪 Purple Pencil")
+            popup.menu.add(0, 8, 0, "🟫 Brown Pencil")
+            popup.menu.add(0, 9, 0, "🧼 Eraser Mode")
             
             popup.setOnMenuItemClickListener { item ->
+                canvasView.isEraserMode = false
                 when (item.itemId) {
-                    1 -> {
-                        canvasView.isEraserMode = false
-                        canvasView.currentPenColor = Color.BLACK
-                        btnToolsMenu.text = "⬛ Black"
-                    }
-                    2 -> {
-                        canvasView.isEraserMode = false
-                        canvasView.currentPenColor = Color.RED
-                        btnToolsMenu.text = "🟥 Red"
-                    }
-                    3 -> {
-                        canvasView.isEraserMode = false
-                        canvasView.currentPenColor = Color.BLUE
-                        btnToolsMenu.text = "🟦 Blue"
-                    }
-                    4 -> {
-                        canvasView.isEraserMode = true
-                        btnToolsMenu.text = "🧼 Eraser"
-                    }
+                    1 -> { canvasView.currentPenColor = Color.BLACK; btnToolsMenu.text = "⬛ Black" }
+                    2 -> { canvasView.currentPenColor = Color.RED; btnToolsMenu.text = "🟥 Red" }
+                    3 -> { canvasView.currentPenColor = Color.BLUE; btnToolsMenu.text = "🟦 Blue" }
+                    4 -> { canvasView.currentPenColor = Color.parseColor("#FF9800"); btnToolsMenu.text = "🟧 Orange" }
+                    5 -> { canvasView.currentPenColor = Color.parseColor("#FFEB3B"); btnToolsMenu.text = "🟨 Yellow" }
+                    6 -> { canvasView.currentPenColor = Color.parseColor("#4CAF50"); btnToolsMenu.text = "🟩 Green" }
+                    7 -> { canvasView.currentPenColor = Color.parseColor("#9C27B0"); btnToolsMenu.text = "🟪 Purple" }
+                    8 -> { canvasView.currentPenColor = Color.parseColor("#795548"); btnToolsMenu.text = "🟫 Brown" }
+                    9 -> { canvasView.isEraserMode = true; btnToolsMenu.text = "🧼 Eraser" }
                 }
                 true
             }
@@ -113,14 +91,10 @@ class NoteEditorActivity : AppCompatActivity() {
                         break
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            
+            } catch (e: Exception) { e.printStackTrace() }
             popup.show()
         }
 
-        // Setup Dropdown Popup Menu for Stroke Size Thickness profiles
         val btnSizesMenu = findViewById<Button>(R.id.btnSizesMenu)
         btnSizesMenu.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
@@ -130,18 +104,9 @@ class NoteEditorActivity : AppCompatActivity() {
             
             popup.setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    1 -> {
-                        canvasView.currentPenSize = 2f
-                        btnSizesMenu.text = "📐 2px"
-                    }
-                    2 -> {
-                        canvasView.currentPenSize = 5f
-                        btnSizesMenu.text = "📐 5px"
-                    }
-                    3 -> {
-                        canvasView.currentPenSize = 20f
-                        btnSizesMenu.text = "📐 20px"
-                    }
+                    1 -> { canvasView.currentPenSize = 2f; btnSizesMenu.text = "📐 2px" }
+                    2 -> { canvasView.currentPenSize = 5f; btnSizesMenu.text = "📐 5px" }
+                    3 -> { canvasView.currentPenSize = 20f; btnSizesMenu.text = "📐 20px" }
                 }
                 true
             }
@@ -158,33 +123,16 @@ class NoteEditorActivity : AppCompatActivity() {
                         break
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            
+            } catch (e: Exception) { e.printStackTrace() }
             popup.show()
         }
 
-        findViewById<Button>(R.id.btnAddPage).setOnClickListener {
-            canvasView.addPage()
-            updatePageIndicator()
-            autoSaveData()
-        }
-        
-        findViewById<Button>(R.id.btnPrevPage).setOnClickListener {
-            if (canvasView.prevPage()) updatePageIndicator()
-        }
-        
-        findViewById<Button>(R.id.btnNextPage).setOnClickListener {
-            if (canvasView.nextPage()) updatePageIndicator()
-        }
+        findViewById<Button>(R.id.btnAddPage).setOnClickListener { canvasView.addPage(); updatePageIndicator(); autoSaveData() }
+        findViewById<Button>(R.id.btnPrevPage).setOnClickListener { if (canvasView.prevPage()) updatePageIndicator() }
+        findViewById<Button>(R.id.btnNextPage).setOnClickListener { if (canvasView.nextPage()) updatePageIndicator() }
 
         val jumpResId = resources.getIdentifier("btnJumpPage", "id", packageName)
-        if (jumpResId != 0) {
-            findViewById<Button>(jumpResId).setOnClickListener {
-                showJumpWithThumbnailsDialog()
-            }
-        }
+        if (jumpResId != 0) { findViewById<Button>(jumpResId).setOnClickListener { showJumpWithThumbnailsDialog() } }
 
         findViewById<Button>(R.id.btnDeletePage).setOnClickListener {
             val targetIdx = canvasView.currentPageIndex
@@ -211,27 +159,12 @@ class NoteEditorActivity : AppCompatActivity() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
-
         updatePageIndicator()
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent) 
-        
-        val id = intent.getStringExtra("NOTEBOOK_ID")
-        val title = intent.getStringExtra("NOTEBOOK_TITLE")
-        
-        if (id != null) {
-            // Ensure this method is defined in your class or linked appropriately
-            loadNotebookData(id, title ?: "Notebook") 
-        }
     }
 
     private fun showJumpWithThumbnailsDialog() {
         val totalPages = canvasView.getPageCount()
         val listView = ListView(this)
-        
         val dialog = AlertDialog.Builder(this)
             .setTitle("Jump to Page Preview")
             .setView(listView)
@@ -246,40 +179,24 @@ class NoteEditorActivity : AppCompatActivity() {
             canvasView.invalidate()
             dialog.dismiss()
         }
-
         dialog.show()
     }
 
-    private class PageThumbnailAdapter(
-        private val context: Context,
-        private val count: Int,
-        private val canvasView: DrawingCanvasView
-    ) : BaseAdapter() {
-
+    private class PageThumbnailAdapter(private val context: Context, private val count: Int, private val canvasView: DrawingCanvasView) : BaseAdapter() {
         override fun getCount(): Int = count
         override fun getItem(position: Int): Any = position
         override fun getItemId(position: Int): Long = position.toLong()
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            val view = convertView ?: LayoutInflater.from(context)
-                .inflate(android.R.layout.activity_list_item, parent, false)
-
+            val view = convertView ?: LayoutInflater.from(context).inflate(android.R.layout.activity_list_item, parent, false)
             val text = view.findViewById<TextView>(android.R.id.text1)
             val icon = view.findViewById<ImageView>(android.R.id.icon)
-
-            text.text = "Page ${position + 1}"
-            text.textSize = 18f
-
-            val width = 120
-            val height = 155
+            text.text = "Page ${position + 1}"; text.textSize = 18f
+            val width = 120; val height = 155
             val thumbBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(thumbBitmap)
-
             canvas.drawColor(Color.parseColor("#E0E0E0"))
-            val innerPaint = Paint().apply {
-                color = Color.WHITE
-                style = Paint.Style.FILL
-            }
+            val innerPaint = Paint().apply { color = Color.WHITE; style = Paint.Style.FILL }
             canvas.drawRect(4f, 4f, (width - 4).toFloat(), (height - 4).toFloat(), innerPaint)
 
             val originalPagePaths = canvasView.pages.getOrNull(position)
@@ -287,88 +204,24 @@ class NoteEditorActivity : AppCompatActivity() {
                 val scaleX = (width - 8).toFloat() / canvasView.paperWidth
                 val scaleY = (height - 8).toFloat() / canvasView.paperHeight
                 val minScale = Math.min(scaleX, scaleY)
-
-                canvas.save()
-                canvas.translate(4f, 4f)
-                canvas.scale(minScale, minScale)
-
-                val previewPaint = Paint().apply {
-                    style = Paint.Style.STROKE
-                    strokeCap = Paint.Cap.ROUND
-                    strokeJoin = Paint.Join.ROUND
-                    isAntiAlias = true
-                }
-
+                canvas.save(); canvas.translate(4f, 4f); canvas.scale(minScale, minScale)
+                val previewPaint = Paint().apply { style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND; isAntiAlias = true }
                 for (stroke in originalPagePaths) {
-                    previewPaint.color = stroke.color
-                    previewPaint.strokeWidth = stroke.width
-                    
+                    previewPaint.color = stroke.color; previewPaint.strokeWidth = stroke.width
                     val path = Path()
                     val tokens = stroke.pointsStr.split(",")
                     if (tokens.size >= 2) {
                         path.moveTo(tokens[0].toFloat(), tokens[1].toFloat())
                         var i = 2
-                        while (i < tokens.size - 1) {
-                            path.lineTo(tokens[i].toFloat(), tokens[i+1].toFloat())
-                            i += 2
-                        }
+                        while (i < tokens.size - 1) { path.lineTo(tokens[i].toFloat(), tokens[i+1].toFloat()); i += 2 }
                     }
                     canvas.drawPath(path, previewPaint)
                 }
                 canvas.restore()
-            } else {
-                val textPaint = Paint().apply {
-                    color = Color.parseColor("#CCCCCC")
-                    textSize = 28f
-                    isAntiAlias = true
-                    typeface = Typeface.create(Typeface.DEFAULT, Typeface.ITALIC)
-                    textAlign = Paint.Align.CENTER
-                }
-                val textY = (height / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
-                canvas.drawText("Empty", width / 2f, textY, textPaint)
             }
-
-            icon.setImageBitmap(thumbBitmap)
-            icon.layoutParams.width = width
-            icon.layoutParams.height = height
-            icon.scaleType = ImageView.ScaleType.FIT_CENTER
-
+            icon.setImageBitmap(thumbBitmap); icon.layoutParams.width = width; icon.layoutParams.height = height; icon.scaleType = ImageView.ScaleType.FIT_CENTER
             return view
         }
-    }
-
-    private fun createNotebookIcon(color: Int): Bitmap {
-        val size = 96 
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        
-        val bgPaint = Paint().apply {
-            this.color = color
-            style = Paint.Style.FILL
-        }
-        canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
-        
-        val circlePaint = Paint().apply {
-            this.color = Color.WHITE
-            style = Paint.Style.FILL
-            isAntiAlias = true
-        }
-        val centerX = size / 2f
-        val centerY = size / 2f
-        val radius = size * 0.3f 
-        canvas.drawCircle(centerX, centerY, radius, circlePaint)
-        
-        val textPaint = Paint().apply {
-            this.color = Color.BLACK
-            textSize = radius * 1.3f
-            isAntiAlias = true
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-            textAlign = Paint.Align.CENTER
-        }
-        val textY = centerY - ((textPaint.descent() + textPaint.ascent()) / 2f)
-        canvas.drawText("x", centerX, textY, textPaint)
-        
-        return bitmap
     }
 
     private fun setupRecentsCardStyle(title: String, noteColor: Int) {
@@ -378,24 +231,25 @@ class NoteEditorActivity : AppCompatActivity() {
         setTaskDescription(taskDesc)
     }
 
+    private fun createNotebookIcon(color: Int): Bitmap {
+        val size = 96 
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val bgPaint = Paint().apply { this.color = color; style = Paint.Style.FILL }
+        canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+        val circlePaint = Paint().apply { this.color = Color.WHITE; style = Paint.Style.FILL; isAntiAlias = true }
+        canvas.drawCircle(size / 2f, size / 2f, size * 0.3f, circlePaint)
+        val textPaint = Paint().apply { this.color = Color.BLACK; textSize = size * 0.3f * 1.3f; isAntiAlias = true; typeface = Typeface.DEFAULT_BOLD; textAlign = Paint.Align.CENTER }
+        canvas.drawText("x", size / 2f, (size / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f), textPaint)
+        return bitmap
+    }
+
     private fun autoSaveData() {
         val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("note_data_$notebookId", canvasView.toSerializedString()).apply()
     }
 
-    override fun onPause() {
-        super.onPause()
-        autoSaveData()
-    }
-
     private fun updatePageIndicator() {
-        val current = canvasView.currentPageIndex + 1
-        val total = canvasView.getPageCount()
-        pageIndicator.text = "$current/$total"
-    }
-
-    // Ensure this method is defined in your class to handle the load logic triggered by onNewIntent
-    private fun loadNotebookData(id: String, title: String) {
-        // Implement your data loading logic here
+        pageIndicator.text = "${canvasView.currentPageIndex + 1}/${canvasView.getPageCount()}"
     }
 }

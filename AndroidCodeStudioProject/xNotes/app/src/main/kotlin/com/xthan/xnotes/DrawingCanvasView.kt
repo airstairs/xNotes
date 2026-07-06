@@ -166,7 +166,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                 while (iterator.hasNext()) {
                     val stroke = iterator.next()
                     if (isPointNearStroke(mappedX, mappedY, stroke.pointsStr, stroke.width + 20f)) {
-                        redoPages[currentPageIndex].add(stroke) // Added to redo stack
+                        redoPages[currentPageIndex].add(stroke)
                         iterator.remove()
                         modified = true
                     }

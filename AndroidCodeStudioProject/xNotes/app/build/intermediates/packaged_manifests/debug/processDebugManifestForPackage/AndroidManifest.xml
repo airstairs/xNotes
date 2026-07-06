@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="21"
-        android:targetSdkVersion="34" />
+        android:targetSdkVersion="35" />
 
     <permission
         android:name="com.xthan.xnotes.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
