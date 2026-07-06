@@ -103,9 +103,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showNameInputDialog() {
-        val input = EditText(this).apply { hint = "Note Name" }
+        val input = EditText(this).apply { hint = "Notebook Name" }
         AlertDialog.Builder(this)
-            .setTitle("New Note Name")
+            .setTitle("Set New Notebook Name")
             .setView(input)
             .setPositiveButton("Next") { _, _ ->
                 val name = input.text.toString().trim()
@@ -375,9 +375,9 @@ class MainActivity : AppCompatActivity() {
         val scroll = ScrollView(context).apply { addView(layout) }
 
         AlertDialog.Builder(context)
-            .setTitle("Thread Delete Manager")
+            .setTitle("Notebook Delete Manager")
             .setView(scroll)
-            .setPositiveButton("Execute Trash") { _, _ ->
+            .setPositiveButton("Delete") { _, _ ->
                 val targetedToDelete = mutableListOf<String>()
                 for (i in checkBoxes.indices) {
                     if (checkBoxes[i].isChecked) {
