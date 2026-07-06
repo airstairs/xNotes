@@ -6,11 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.xthan.xnotes.R;
@@ -20,64 +17,37 @@ import java.lang.String;
 
 public final class ActivityMainBinding implements ViewBinding {
   @NonNull
-  private final RelativeLayout rootView;
+  private final LinearLayout rootView;
 
   @NonNull
-  public final Button btnCancelSelection;
+  public final Button btnExportAll;
 
   @NonNull
-  public final Button btnConfirmMassDelete;
+  public final Button btnImportAll;
 
   @NonNull
-  public final Button btnCreateNotebook;
+  public final Button btnMassDelete;
 
   @NonNull
-  public final Button btnExportBackup;
+  public final Button btnNotebook1;
 
   @NonNull
-  public final Button btnImportBackup;
+  public final LinearLayout savesContainer;
 
-  @NonNull
-  public final Button btnManageThreads;
-
-  @NonNull
-  public final Button btnSelectAll;
-
-  @NonNull
-  public final LinearLayout migrationActionBar;
-
-  @NonNull
-  public final RecyclerView recyclerViewNotebooks;
-
-  @NonNull
-  public final LinearLayout selectionContextBar;
-
-  @NonNull
-  public final TextView txtHeaderLabel;
-
-  private ActivityMainBinding(@NonNull RelativeLayout rootView, @NonNull Button btnCancelSelection,
-      @NonNull Button btnConfirmMassDelete, @NonNull Button btnCreateNotebook,
-      @NonNull Button btnExportBackup, @NonNull Button btnImportBackup,
-      @NonNull Button btnManageThreads, @NonNull Button btnSelectAll,
-      @NonNull LinearLayout migrationActionBar, @NonNull RecyclerView recyclerViewNotebooks,
-      @NonNull LinearLayout selectionContextBar, @NonNull TextView txtHeaderLabel) {
+  private ActivityMainBinding(@NonNull LinearLayout rootView, @NonNull Button btnExportAll,
+      @NonNull Button btnImportAll, @NonNull Button btnMassDelete, @NonNull Button btnNotebook1,
+      @NonNull LinearLayout savesContainer) {
     this.rootView = rootView;
-    this.btnCancelSelection = btnCancelSelection;
-    this.btnConfirmMassDelete = btnConfirmMassDelete;
-    this.btnCreateNotebook = btnCreateNotebook;
-    this.btnExportBackup = btnExportBackup;
-    this.btnImportBackup = btnImportBackup;
-    this.btnManageThreads = btnManageThreads;
-    this.btnSelectAll = btnSelectAll;
-    this.migrationActionBar = migrationActionBar;
-    this.recyclerViewNotebooks = recyclerViewNotebooks;
-    this.selectionContextBar = selectionContextBar;
-    this.txtHeaderLabel = txtHeaderLabel;
+    this.btnExportAll = btnExportAll;
+    this.btnImportAll = btnImportAll;
+    this.btnMassDelete = btnMassDelete;
+    this.btnNotebook1 = btnNotebook1;
+    this.savesContainer = savesContainer;
   }
 
   @Override
   @NonNull
-  public RelativeLayout getRoot() {
+  public LinearLayout getRoot() {
     return rootView;
   }
 
@@ -102,76 +72,38 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.btnCancelSelection;
-      Button btnCancelSelection = ViewBindings.findChildViewById(rootView, id);
-      if (btnCancelSelection == null) {
+      id = R.id.btnExportAll;
+      Button btnExportAll = ViewBindings.findChildViewById(rootView, id);
+      if (btnExportAll == null) {
         break missingId;
       }
 
-      id = R.id.btnConfirmMassDelete;
-      Button btnConfirmMassDelete = ViewBindings.findChildViewById(rootView, id);
-      if (btnConfirmMassDelete == null) {
+      id = R.id.btnImportAll;
+      Button btnImportAll = ViewBindings.findChildViewById(rootView, id);
+      if (btnImportAll == null) {
         break missingId;
       }
 
-      id = R.id.btnCreateNotebook;
-      Button btnCreateNotebook = ViewBindings.findChildViewById(rootView, id);
-      if (btnCreateNotebook == null) {
+      id = R.id.btnMassDelete;
+      Button btnMassDelete = ViewBindings.findChildViewById(rootView, id);
+      if (btnMassDelete == null) {
         break missingId;
       }
 
-      id = R.id.btnExportBackup;
-      Button btnExportBackup = ViewBindings.findChildViewById(rootView, id);
-      if (btnExportBackup == null) {
+      id = R.id.btnNotebook1;
+      Button btnNotebook1 = ViewBindings.findChildViewById(rootView, id);
+      if (btnNotebook1 == null) {
         break missingId;
       }
 
-      id = R.id.btnImportBackup;
-      Button btnImportBackup = ViewBindings.findChildViewById(rootView, id);
-      if (btnImportBackup == null) {
+      id = R.id.savesContainer;
+      LinearLayout savesContainer = ViewBindings.findChildViewById(rootView, id);
+      if (savesContainer == null) {
         break missingId;
       }
 
-      id = R.id.btnManageThreads;
-      Button btnManageThreads = ViewBindings.findChildViewById(rootView, id);
-      if (btnManageThreads == null) {
-        break missingId;
-      }
-
-      id = R.id.btnSelectAll;
-      Button btnSelectAll = ViewBindings.findChildViewById(rootView, id);
-      if (btnSelectAll == null) {
-        break missingId;
-      }
-
-      id = R.id.migrationActionBar;
-      LinearLayout migrationActionBar = ViewBindings.findChildViewById(rootView, id);
-      if (migrationActionBar == null) {
-        break missingId;
-      }
-
-      id = R.id.recyclerViewNotebooks;
-      RecyclerView recyclerViewNotebooks = ViewBindings.findChildViewById(rootView, id);
-      if (recyclerViewNotebooks == null) {
-        break missingId;
-      }
-
-      id = R.id.selectionContextBar;
-      LinearLayout selectionContextBar = ViewBindings.findChildViewById(rootView, id);
-      if (selectionContextBar == null) {
-        break missingId;
-      }
-
-      id = R.id.txtHeaderLabel;
-      TextView txtHeaderLabel = ViewBindings.findChildViewById(rootView, id);
-      if (txtHeaderLabel == null) {
-        break missingId;
-      }
-
-      return new ActivityMainBinding((RelativeLayout) rootView, btnCancelSelection,
-          btnConfirmMassDelete, btnCreateNotebook, btnExportBackup, btnImportBackup,
-          btnManageThreads, btnSelectAll, migrationActionBar, recyclerViewNotebooks,
-          selectionContextBar, txtHeaderLabel);
+      return new ActivityMainBinding((LinearLayout) rootView, btnExportAll, btnImportAll,
+          btnMassDelete, btnNotebook1, savesContainer);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

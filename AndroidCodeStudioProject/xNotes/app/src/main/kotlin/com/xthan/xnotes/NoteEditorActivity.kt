@@ -1,12 +1,11 @@
 package com.xthan.xnotes
 
+import com.xthan.xnotes.R
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.NumberPicker
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -14,196 +13,197 @@ import androidx.appcompat.app.AppCompatActivity
 
 class NoteEditorActivity : AppCompatActivity() {
 
-    private lateinit var drawingCanvas: DrawingCanvasView
-    private lateinit var txtPageIndicator: TextView
-    private lateinit var txtBottomNotebookTitle: TextView
-    
-    private var notebookId: String = ""
-    private var notebookTitle: String = ""
-    private var notebookColor: Int = Color.BLACK
-
-    // Page state control tracks
-    private val pageDataList = mutableListOf<String>() // Holds raw structural rendering strings per page sheet
-    private var currentPageIndex = 0
+    private lateinit var canvasView: DrawingCanvasView
+    private lateinit var pageIndicator: TextView
+    private lateinit var bottomTitleIndicator: TextView
+    private lateinit var notebookId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note_editor)
 
-        // Read intent extras from main deck router pass
-        notebookId = intent.getStringExtra("NOTEBOOK_ID") ?: ""
-        notebookTitle = intent.getStringExtra("NOTEBOOK_TITLE") ?: "Untitled Notebook"
-        notebookColor = intent.getIntExtra("NOTEBOOK_COLOR", Color.BLACK)
+        canvasView = findViewById(R.id.drawingCanvas)
+        pageIndicator = findViewById(R.id.txtPageIndicator)
+        bottomTitleIndicator = findViewById(R.id.txtBottomNotebookTitle)
 
-        // Initialize UI Elements
-        drawingCanvas = findViewById(R.id.drawingCanvas)
-        txtPageIndicator = findViewById(R.id.txtPageIndicator)
-        txtBottomNotebookTitle = findViewById(R.id.txtBottomNotebookTitle)
+        notebookId = intent.getStringExtra("NOTEBOOK_ID") ?: "default"
+        val title = intent.getStringExtra("NOTEBOOK_TITLE") ?: "Notebook"
+        setTitle(title)
+        
+        bottomTitleIndicator.text = title
 
-        // Assign initial metadata views
-        txtBottomNotebookTitle.text = notebookTitle
-        drawingCanvas.setStrokeColor(notebookColor)
+        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+        val savedData = prefs.getString("note_data_$notebookId", "") ?: ""
+        canvasView.loadFromSerializedString(savedData)
 
-        // Load page structures from persistence layers
-        loadSavedNotePages()
+        canvasView.onStrokeAdded = { autoSaveData() }
 
-        // Hook up structural top bar buttons
-        findViewById<Button>(R.id.btnToolsMenu).setOnClickListener {
-            // Placeholder path for brush style popups
-            Toast.makeText(this, "Brush Tools Menu", Toast.LENGTH_SHORT).show()
+        // Floating Action Buttons Click Listeners
+        findViewById<Button>(R.id.btnUndo).setOnClickListener {
+            canvasView.undoLastStroke()
         }
 
-        findViewById<Button>(R.id.btnSizesMenu).setOnClickListener {
-            // Placeholder path for stroke sizing options
-            Toast.makeText(this, "Stroke Size Menu", Toast.LENGTH_SHORT).show()
+        findViewById<Button>(R.id.btnRedo).setOnClickListener {
+            canvasView.redoLastStroke()
         }
 
-        findViewById<Button>(R.id.btnPrevPage).setOnClickListener {
-            if (currentPageIndex > 0) {
-                saveCurrentPageSnapshot()
-                currentPageIndex--
-                displayCurrentPageData()
+        // Zoom Reset Trigger Listener (Left Floating Anchor Target)
+        findViewById<Button>(R.id.btnZoomReset).setOnClickListener {
+            canvasView.resetZoomAndPan()
+        }
+
+        // Setup Dropdown Popup Menu for Tools & Colors
+        val btnToolsMenu = findViewById<Button>(R.id.btnToolsMenu)
+        btnToolsMenu.setOnClickListener { view ->
+            val popup = PopupMenu(this, view)
+            popup.menu.add(0, 1, 0, "⬛ Black Pencil")
+            popup.menu.add(0, 2, 0, "🟥 Red Pencil")
+            popup.menu.add(0, 3, 0, "🟦 Blue Pencil")
+            popup.menu.add(0, 4, 0, "🧼 Eraser Mode")
+            
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        canvasView.isEraserMode = false
+                        canvasView.currentPenColor = Color.BLACK
+                        btnToolsMenu.text = "⬛ Black"
+                    }
+                    2 -> {
+                        canvasView.isEraserMode = false
+                        canvasView.currentPenColor = Color.RED
+                        btnToolsMenu.text = "🟥 Red"
+                    }
+                    3 -> {
+                        canvasView.isEraserMode = false
+                        canvasView.currentPenColor = Color.BLUE
+                        btnToolsMenu.text = "🟦 Blue"
+                    }
+                    4 -> {
+                        canvasView.isEraserMode = true
+                        btnToolsMenu.text = "🧼 Eraser"
+                    }
+                }
+                true
             }
+            
+            try {
+                val fields = popup.javaClass.getDeclaredFields()
+                for (field in fields) {
+                    if ("mPopup" == field.name) {
+                        field.isAccessible = true
+                        val menuPopupHelper = field.get(popup)
+                        val classPopupHelper = Class.forName(menuPopupHelper.javaClass.name)
+                        val setForceIcons = classPopupHelper.getMethod("setForceShowIcon", Boolean::class.java)
+                        setForceIcons.invoke(menuPopupHelper, true)
+                        break
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            
+            popup.show()
         }
 
-        findViewById<Button>(R.id.btnNextPage).setOnClickListener {
-            if (currentPageIndex < pageDataList.size - 1) {
-                saveCurrentPageSnapshot()
-                currentPageIndex++
-                displayCurrentPageData()
-            } else {
-                Toast.makeText(this, "Click '+' to append a new page canvas sheet.", Toast.LENGTH_SHORT).show()
+        // Setup Dropdown Popup Menu for Stroke Size Thickness profiles
+        val btnSizesMenu = findViewById<Button>(R.id.btnSizesMenu)
+        btnSizesMenu.setOnClickListener { view ->
+            val popup = PopupMenu(this, view)
+            popup.menu.add(0, 1, 0, "📐 Extra Thin (2px)")
+            popup.menu.add(0, 2, 0, "📐 Thin (5px)")
+            popup.menu.add(0, 3, 0, "📐 Thick (20px)")
+            
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        canvasView.currentPenSize = 2f
+                        btnSizesMenu.text = "📐 2px"
+                    }
+                    2 -> {
+                        canvasView.currentPenSize = 5f
+                        btnSizesMenu.text = "📐 5px"
+                    }
+                    3 -> {
+                        canvasView.currentPenSize = 20f
+                        btnSizesMenu.text = "📐 20px"
+                    }
+                }
+                true
             }
+
+            try {
+                val fields = popup.javaClass.getDeclaredFields()
+                for (field in fields) {
+                    if ("mPopup" == field.name) {
+                        field.isAccessible = true
+                        val menuPopupHelper = field.get(popup)
+                        val classPopupHelper = Class.forName(menuPopupHelper.javaClass.name)
+                        val setForceIcons = classPopupHelper.getMethod("setForceShowIcon", Boolean::class.java)
+                        setForceIcons.invoke(menuPopupHelper, true)
+                        break
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            
+            popup.show()
         }
 
         findViewById<Button>(R.id.btnAddPage).setOnClickListener {
-            saveCurrentPageSnapshot()
-            pageDataList.add("") // Add an empty snapshot block string array slot
-            currentPageIndex = pageDataList.size - 1
-            displayCurrentPageData()
-            Toast.makeText(this, "Page ${currentPageIndex + 1} Created", Toast.LENGTH_SHORT).show()
+            canvasView.addPage()
+            updatePageIndicator()
+            autoSaveData()
+        }
+        findViewById<Button>(R.id.btnPrevPage).setOnClickListener {
+            if (canvasView.prevPage()) updatePageIndicator()
+        }
+        findViewById<Button>(R.id.btnNextPage).setOnClickListener {
+            if (canvasView.nextPage()) updatePageIndicator()
         }
 
         findViewById<Button>(R.id.btnDeletePage).setOnClickListener {
-            if (pageDataList.size > 1) {
-                AlertDialog.Builder(this)
-                    .setTitle("Delete Current Page")
-                    .setMessage("Are you sure you want to completely erase page ${currentPageIndex + 1}?")
-                    .setPositiveButton("Delete") { _, _ ->
-                        pageDataList.removeAt(currentPageIndex)
-                        if (currentPageIndex >= pageDataList.size) {
-                            currentPageIndex = pageDataList.size - 1
-                        }
-                        displayCurrentPageData()
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
-            } else {
-                Toast.makeText(this, "Cannot delete the last remaining page sheet.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // New Feature: Quick Jump Page Navigator Wheel Setup
-        findViewById<Button>(R.id.btnJumpPage).setOnClickListener {
-            val totalPages = pageDataList.size
-            if (totalPages <= 1) {
-                Toast.makeText(this, "Only one page exists to display.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Create an interactive system wheel selector dialogue view
-            val numberPicker = NumberPicker(this).apply {
-                minValue = 1
-                maxValue = totalPages
-                value = currentPageIndex + 1
-                wrapSelectorWheel = false
-            }
-
+            val targetIdx = canvasView.currentPageIndex
             AlertDialog.Builder(this)
-                .setTitle("Jump to Page")
-                .setView(numberPicker)
-                .setPositiveButton("Go") { _, _ ->
-                    val targetPage = numberPicker.value - 1
-                    if (targetPage != currentPageIndex) {
-                        saveCurrentPageSnapshot()
-                        currentPageIndex = targetPage
-                        displayCurrentPageData()
+                .setTitle("Delete Page")
+                .setMessage("Delete Page ${targetIdx + 1}? This action cannot be reversed.")
+                .setPositiveButton("Delete") { _, _ ->
+                    if (canvasView.getPageCount() <= 1) {
+                        canvasView.pages[0].clear()
+                        canvasView.redoPages[0].clear()
+                        canvasView.resetZoomAndPan()
+                    } else {
+                        canvasView.pages.removeAt(targetIdx)
+                        canvasView.redoPages.removeAt(targetIdx)
+                        if (canvasView.currentPageIndex >= canvasView.getPageCount()) {
+                            canvasView.currentPageIndex = canvasView.getPageCount() - 1
+                        }
+                        canvasView.resetZoomAndPan()
                     }
+                    updatePageIndicator()
+                    autoSaveData()
+                    Toast.makeText(this, "Page deleted", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
         }
 
-        // Hook up bottom layer controller targets
-        findViewById<Button>(R.id.btnZoomReset).setOnClickListener {
-            drawingCanvas.resetCanvasZoomScale() // Calls clear viewport scaling paths
-        }
-
-        findViewById<Button>(R.id.btnUndo).setOnClickListener {
-            drawingCanvas.undoLastStroke()
-        }
-
-        findViewById<Button>(R.id.btnRedo).setOnClickListener {
-            drawingCanvas.redoLastStroke()
-        }
+        updatePageIndicator()
     }
 
-    private fun saveCurrentPageSnapshot() {
-        if (notebookId.isNotEmpty()) {
-            val rawPageString = drawingCanvas.getSerializedDataString() ?: ""
-            if (currentPageIndex in 0 until pageDataList.size) {
-                pageDataList[currentPageIndex] = rawPageString
-            }
-        }
-    }
-
-    private fun displayCurrentPageData() {
-        // Stop background loops and render structural path data strings cleanly
-        drawingCanvas.clearCanvasViewElements()
-        val pageString = pageDataList.getOrNull(currentPageIndex) ?: ""
-        if (pageString.isNotEmpty()) {
-            drawingCanvas.loadSerializedDataString(pageString)
-        }
-        
-        // Update page string indicator readout display text fields safely
-        txtPageIndicator.text = "${currentPageIndex + 1}/${pageDataList.size}"
-    }
-
-    private fun saveAllNotebookPagesToDisk() {
-        if (notebookId.isEmpty()) return
-        saveCurrentPageSnapshot()
-
+    private fun autoSaveData() {
         val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-        val stringBuilder = StringBuilder()
-        for (i in 0 until pageDataList.size) {
-            stringBuilder.append(pageDataList[i])
-            if (i < pageDataList.size - 1) {
-                stringBuilder.append("===PAGE_BREAK===")
-            }
-        }
-        prefs.edit().putString("note_data_$notebookId", stringBuilder.toString()).apply()
-    }
-
-    private fun loadSavedNotePages() {
-        pageDataList.clear()
-        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
-        val rawDocData = prefs.getString("note_data_$notebookId", "") ?: ""
-
-        if (rawDocData.isNotEmpty()) {
-            val structuralPages = rawDocData.split("===PAGE_BREAK===")
-            for (page in structuralPages) {
-                pageDataList.add(page)
-            }
-            currentPageIndex = 0
-        } else {
-            pageDataList.add("") // Default primary workbook index entry assignment initialization
-            currentPageIndex = 0
-        }
-        displayCurrentPageData()
+        prefs.edit().putString("note_data_$notebookId", canvasView.toSerializedString()).apply()
     }
 
     override fun onPause() {
         super.onPause()
-        saveAllNotebookPagesToDisk() // Guarantee layout preservation when swapping activities out of background states
+        autoSaveData()
+    }
+
+    private fun updatePageIndicator() {
+        val current = canvasView.currentPageIndex + 1
+        val total = canvasView.getPageCount()
+        pageIndicator.text = "$current/$total"
     }
 }

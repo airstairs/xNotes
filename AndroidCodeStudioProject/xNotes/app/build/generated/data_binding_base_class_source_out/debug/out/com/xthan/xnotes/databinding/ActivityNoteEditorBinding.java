@@ -23,9 +23,6 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   private final RelativeLayout rootView;
 
   @NonNull
-  public final RelativeLayout bottomControllerLayer;
-
-  @NonNull
   public final Button btnAddPage;
 
   @NonNull
@@ -64,15 +61,13 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   @NonNull
   public final TextView txtPageIndicator;
 
-  private ActivityNoteEditorBinding(@NonNull RelativeLayout rootView,
-      @NonNull RelativeLayout bottomControllerLayer, @NonNull Button btnAddPage,
+  private ActivityNoteEditorBinding(@NonNull RelativeLayout rootView, @NonNull Button btnAddPage,
       @NonNull Button btnDeletePage, @NonNull Button btnNextPage, @NonNull Button btnPrevPage,
       @NonNull Button btnRedo, @NonNull Button btnSizesMenu, @NonNull Button btnToolsMenu,
       @NonNull Button btnUndo, @NonNull Button btnZoomReset,
       @NonNull DrawingCanvasView drawingCanvas, @NonNull LinearLayout topToolbar,
       @NonNull TextView txtBottomNotebookTitle, @NonNull TextView txtPageIndicator) {
     this.rootView = rootView;
-    this.bottomControllerLayer = bottomControllerLayer;
     this.btnAddPage = btnAddPage;
     this.btnDeletePage = btnDeletePage;
     this.btnNextPage = btnNextPage;
@@ -115,12 +110,6 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.bottomControllerLayer;
-      RelativeLayout bottomControllerLayer = ViewBindings.findChildViewById(rootView, id);
-      if (bottomControllerLayer == null) {
-        break missingId;
-      }
-
       id = R.id.btnAddPage;
       Button btnAddPage = ViewBindings.findChildViewById(rootView, id);
       if (btnAddPage == null) {
@@ -199,10 +188,9 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityNoteEditorBinding((RelativeLayout) rootView, bottomControllerLayer,
-          btnAddPage, btnDeletePage, btnNextPage, btnPrevPage, btnRedo, btnSizesMenu, btnToolsMenu,
-          btnUndo, btnZoomReset, drawingCanvas, topToolbar, txtBottomNotebookTitle,
-          txtPageIndicator);
+      return new ActivityNoteEditorBinding((RelativeLayout) rootView, btnAddPage, btnDeletePage,
+          btnNextPage, btnPrevPage, btnRedo, btnSizesMenu, btnToolsMenu, btnUndo, btnZoomReset,
+          drawingCanvas, topToolbar, txtBottomNotebookTitle, txtPageIndicator);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
