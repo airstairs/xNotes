@@ -7,6 +7,7 @@ id btnAddPage
 id btnDeletePage
 id btnExportAll
 id btnImportAll
+id btnJumpPage
 id btnMassDelete
 id btnNextPage
 id btnNotebook1
@@ -18,7 +19,6 @@ id btnUndo
 id btnZoomReset
 id drawingCanvas
 id savesContainer
-id topToolbar
 id txtBottomNotebookTitle
 id txtPageIndicator
 layout activity_main

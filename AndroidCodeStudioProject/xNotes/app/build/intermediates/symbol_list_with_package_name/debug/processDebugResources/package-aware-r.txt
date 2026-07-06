@@ -3761,6 +3761,7 @@ id btnAddPage
 id btnDeletePage
 id btnExportAll
 id btnImportAll
+id btnJumpPage
 id btnMassDelete
 id btnNextPage
 id btnNotebook1
@@ -4151,7 +4152,6 @@ id title_template
 id toggle
 id top
 id topPanel
-id topToolbar
 id top_center
 id touch_outside
 id transitionToEnd

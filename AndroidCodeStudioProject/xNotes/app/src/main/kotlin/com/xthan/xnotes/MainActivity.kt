@@ -4,6 +4,10 @@ import com.xthan.xnotes.R
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.widget.*
@@ -15,17 +19,22 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
 
-
-
-
-
-
-
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var savesContainer: LinearLayout
     private val PICK_FILE_REQUEST_CODE = 1001
+
+    private val colorOptions = arrayOf("Black", "Red", "Blue", "Green", "Yellow", "Purple", "Orange", "Gray")
+    private val colorValues = arrayOf(
+        Color.BLACK, 
+        Color.RED, 
+        Color.BLUE, 
+        Color.parseColor("#4CAF50"), // Clean Green
+        Color.parseColor("#FFEB3B"), // Clean Yellow
+        Color.parseColor("#9C27B0"), // Clean Purple
+        Color.parseColor("#FF9800"), // Clean Orange
+        Color.GRAY
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,20 +68,75 @@ class MainActivity : AppCompatActivity() {
         refreshSavedNotesList()
     }
 
+    private fun createNotebookIcon(color: Int): Bitmap {
+        val size = 96 
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        
+        val bgPaint = Paint().apply {
+            this.color = color
+            style = Paint.Style.FILL
+        }
+        canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+        
+        val circlePaint = Paint().apply {
+            this.color = Color.WHITE
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+        val centerX = size / 2f
+        val centerY = size / 2f
+        val radius = size * 0.3f 
+        canvas.drawCircle(centerX, centerY, radius, circlePaint)
+        
+        val textPaint = Paint().apply {
+            this.color = Color.BLACK
+            textSize = radius * 1.3f
+            isAntiAlias = true
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+        }
+        val textY = centerY - ((textPaint.descent() + textPaint.ascent()) / 2f)
+        canvas.drawText("x", centerX, textY, textPaint)
+        
+        return bitmap
+    }
+
     private fun showNameInputDialog() {
         val input = EditText(this).apply { hint = "Note Name" }
         AlertDialog.Builder(this)
             .setTitle("New Note Name")
             .setView(input)
-            .setPositiveButton("Create") { _, _ ->
+            .setPositiveButton("Next") { _, _ ->
                 val name = input.text.toString().trim()
                 if (name.isNotEmpty()) {
-                    saveNoteTitleToList(name)
-                    openNotebook(name, name)
+                    showColorSelectionDialog(name, isReassigning = false)
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showColorSelectionDialog(name: String, isReassigning: Boolean) {
+        AlertDialog.Builder(this)
+            .setTitle(if (isReassigning) "Change Color for $name" else "Select Notebook Color")
+            .setItems(colorOptions) { _, which ->
+                val selectedColor = colorValues[which]
+                saveNoteColor(name, selectedColor)
+                if (!isReassigning) {
+                    saveNoteTitleToList(name)
+                    openNotebook(name, name)
+                } else {
+                    refreshSavedNotesList()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun saveNoteColor(name: String, color: Int) {
+        val prefs = getSharedPreferences("xnotes_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putInt("note_color_$name", color).apply()
     }
 
     private fun saveNoteTitleToList(name: String) {
@@ -92,6 +156,23 @@ class MainActivity : AppCompatActivity() {
             val itemLayout = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 setPadding(0, 8, 0, 8)
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+
+            val noteColor = prefs.getInt("note_color_$noteName", Color.GRAY)
+
+            val btnColorSquare = ImageButton(this).apply {
+                val sizePx = (48 * resources.displayMetrics.density).toInt()
+                layoutParams = LinearLayout.LayoutParams(sizePx, sizePx).apply {
+                    setMargins(0, 0, 8, 0)
+                }
+                setImageBitmap(createNotebookIcon(noteColor))
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                setBackgroundColor(Color.TRANSPARENT)
+                setPadding(0, 0, 0, 0)
+                setOnClickListener {
+                    showColorSelectionDialog(noteName, isReassigning = true)
+                }
             }
 
             val btnOpen = Button(this).apply {
@@ -110,21 +191,23 @@ class MainActivity : AppCompatActivity() {
                         .setPositiveButton("Delete") { _, _ ->
                             val currentList = prefs.getStringSet("notes_list", emptySet())?.toMutableSet() ?: mutableSetOf()
                             currentList.remove(noteName)
-                            prefs.edit().putStringSet("notes_list", currentList).remove("note_data_$noteName").apply()
+                            prefs.edit().putStringSet("notes_list", currentList)
+                                .remove("note_data_$noteName")
+                                .remove("note_color_$noteName")
+                                .apply()
                             refreshSavedNotesList()
                         }
-                        .setNegativeButton("Cancel", null)
-                        .show()
+                    .setNegativeButton("Cancel", null)
+                    .show()
                 }
             }
 
+            itemLayout.addView(btnColorSquare)
             itemLayout.addView(btnOpen)
             itemLayout.addView(btnDelete)
             savesContainer.addView(itemLayout)
         }
     }
-
-    
 
     private fun showExportFileNameDialog() {
         val input = EditText(this).apply { hint = "Backup Name" }
@@ -136,7 +219,6 @@ class MainActivity : AppCompatActivity() {
                 var fileName = input.text.toString().trim()
                 if (fileName.isEmpty()) fileName = "Backup"
                 
-                // Force the explicit custom file extension
                 if (!fileName.endsWith(".xNotesBackup")) {
                     fileName = "$fileName.xNotesBackup"
                 }
@@ -148,11 +230,12 @@ class MainActivity : AppCompatActivity() {
                 for ((index, noteName) in savedList.withIndex()) {
                     if (index > 0) combinedData.append("##NOTE_BREAK##")
                     val noteData = prefs.getString("note_data_$noteName", "") ?: ""
-                    combinedData.append("$noteName##NOTE_SPLIT##$noteData")
+                    // Append color configuration payload to export file format
+                    val noteColor = prefs.getInt("note_color_$noteName", Color.GRAY)
+                    combinedData.append("$noteName##NOTE_SPLIT##$noteData##COLOR_SPLIT##$noteColor")
                 }
     
                 try {
-                    // Write data to a physical file inside the app cache directory
                     val exportDir = File(cacheDir, "exports")
                     if (!exportDir.exists()) exportDir.mkdirs()
                     
@@ -161,18 +244,16 @@ class MainActivity : AppCompatActivity() {
                         writer.write(combinedData.toString().toByteArray())
                     }
     
-                    // Generate a secure secure content URI via our FileProvider configuration
                     val fileUri: Uri = FileProvider.getUriForFile(
                         this,
                         "com.xthan.xnotes.fileprovider",
                         outputFile
                     )
     
-                    // Fire an ACTION_SEND intent passing the explicit binary file stream stream uri
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND
                         putExtra(Intent.EXTRA_STREAM, fileUri)
-                        type = "application/octet-stream" // Signals to system that this is a raw document file
+                        type = "application/octet-stream"
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     
@@ -186,8 +267,6 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null)
             .show()
     }
-
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intentData: Intent?) {
         super.onActivityResult(requestCode, resultCode, intentData)
@@ -215,9 +294,18 @@ class MainActivity : AppCompatActivity() {
                             if (segment.contains("##NOTE_SPLIT##")) {
                                 val parts = segment.split("##NOTE_SPLIT##", limit = 2)
                                 val name = parts[0]
-                                val data = parts[1]
+                                var dataAndColor = parts[1]
+                                
+                                var colorValue = Color.GRAY
+                                if (dataAndColor.contains("##COLOR_SPLIT##")) {
+                                    val colorParts = dataAndColor.split("##COLOR_SPLIT##", limit = 2)
+                                    dataAndColor = colorParts[0]
+                                    colorValue = colorParts[1].toInt()
+                                }
+                                
                                 currentList.add(name)
-                                editor.putString("note_data_$name", data)
+                                editor.putString("note_data_$name", dataAndColor)
+                                editor.putInt("note_color_$name", colorValue)
                             }
                         }
                         editor.putStringSet("notes_list", currentList).apply()
@@ -307,6 +395,7 @@ class MainActivity : AppCompatActivity() {
                             for (target in targetedToDelete) {
                                 currentList.remove(target)
                                 editor.remove("note_data_$target")
+                                editor.remove("note_color_$target")
                             }
                             editor.putStringSet("notes_list", currentList).apply()
                             refreshSavedNotesList()

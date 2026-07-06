@@ -1,159 +1,157 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F5">
 
-    <!-- Compact Top Toolbar Ribbon -->
-    <LinearLayout
-        android:id="@+id/topToolbar"
+    <!-- Top Action Toolbar Area -->
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:background="#EEEEEE"
-        android:padding="6dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:scrollbars="none"
+        android:background="#FFFFFF"
+        android:padding="8dp"
+        android:elevation="4dp">
 
-        <Button
-            android:id="@+id/btnToolsMenu"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Tools"
-            android:textSize="12sp"
-            android:padding="4dp"/>
-
-        <Button
-            android:id="@+id/btnSizesMenu"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Size"
-            android:textSize="12sp"
-            android:padding="4dp"
-            android:layout_marginStart="4dp"/>
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:background="#999999"
-            android:layout_marginHorizontal="6dp"/>
-
-        <Button
-            android:id="@+id/btnPrevPage"
-            android:layout_width="36dp"
-            android:layout_height="wrap_content"
-            android:text="◀"
-            android:padding="0dp"/>
-
-        <TextView
-            android:id="@+id/txtPageIndicator"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1/1"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:paddingHorizontal="6dp"
-            android:gravity="center"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <Button
-            android:id="@+id/btnNextPage"
-            android:layout_width="36dp"
-            android:layout_height="wrap_content"
-            android:text="▶"
-            android:padding="0dp"/>
+            <Button
+                android:id="@+id/btnToolsMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⬛ Tools"
+                android:layout_marginEnd="4dp" />
 
-        <Button
-            android:id="@+id/btnAddPage"
-            android:layout_width="36dp"
-            android:layout_height="wrap_content"
-            android:text="+"
-            android:backgroundTint="#4CAF50"
-            android:textColor="#FFFFFF"
-            android:padding="0dp"
-            android:layout_marginStart="4dp"/>
+            <Button
+                android:id="@+id/btnSizesMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📐 Stroke"
+                android:layout_marginEnd="8dp" />
 
-        <Button
-            android:id="@+id/btnDeletePage"
-            android:layout_width="36dp"
-            android:layout_height="wrap_content"
-            android:text="DEL"
-            android:backgroundTint="#F44336"
-            android:textColor="#FFFFFF"
-            android:padding="0dp"
-            android:layout_marginStart="4dp"/>
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="#CCCCCC"
+                android:layout_marginEnd="8dp"/>
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/btnUndo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="↩️ Undo"
+                android:layout_marginEnd="4dp" />
 
-    <!-- Main Workspace Drawing Canvas -->
+            <Button
+                android:id="@+id/btnRedo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="↪️ Redo"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnZoomReset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔍 Reset" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Main Active Workspace Canvas Component View -->
     <com.xthan.xnotes.DrawingCanvasView
         android:id="@+id/drawingCanvas"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/topToolbar"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_margin="12dp"
+        android:elevation="2dp"
         android:background="#FFFFFF" />
 
-    <!-- Clean Bottom Row Controller Layer -->
+    <!-- System Control Footer Navigation Deck -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="16dp">
+        android:background="#FFFFFF"
+        android:padding="12dp"
+        android:elevation="8dp">
 
-        <!-- Floating Left Zoom Reset Action Target -->
-        <Button
-            android:id="@+id/btnZoomReset"
-            android:layout_width="wrap_content"
-            android:layout_height="56dp"
-            android:layout_alignParentStart="true"
-            android:text="Zoom Out"
-            android:textSize="11sp"
-            android:backgroundTint="#FFFFFF"
-            android:textColor="#000000"
-            android:paddingHorizontal="12dp" />
-
-        <!-- Centered Notebook Title Indicator -->
+        <!-- Notebook Title Block Display Left -->
         <TextView
             android:id="@+id/txtBottomNotebookTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
-            android:text="Notebook Name"
-            android:textColor="#777777"
-            android:textSize="12sp"
-            android:textStyle="italic"
-            android:maxLines="1"
+            android:text="Notebook"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxWidth="140dp"
             android:ellipsize="end"
-            android:paddingHorizontal="60dp" />
+            android:singleLine="true" />
 
-        <!-- Floating Undo/Redo Controls Layer (Far Right Edge) -->
+        <!-- Canvas Operational Commands & Nav Deck Right -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:orientation="horizontal">
+            android:layout_centerInParent="true"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <Button
-                android:id="@+id/btnUndo"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_marginEnd="8dp"
-                android:text="Undo"
-                android:textSize="12sp"
-                android:backgroundTint="#FFFFFF"
-                android:textColor="#000000" />
+                android:id="@+id/btnDeletePage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🗑️ Delete"
+                android:textColor="#FF3B30"
+                android:layout_marginEnd="8dp" />
 
             <Button
-                android:id="@+id/btnRedo"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:text="Redo"
-                android:textSize="12sp"
-                android:backgroundTint="#FFFFFF"
-                android:textColor="#000000" />
-                
+                android:id="@+id/btnAddPage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="➕ Page"
+                android:layout_marginEnd="12dp" />
+
+            <!-- Your requested Page Jump Button inserted right here -->
+            <Button
+                android:id="@+id/btnJumpPage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📂 Jump"
+                android:textSize="14sp"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnPrevPage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="◀"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/txtPageIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1/1"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#555555"
+                android:layout_marginHorizontal="6dp" />
+
+            <Button
+                android:id="@+id/btnNextPage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▶" />
+
         </LinearLayout>
-        
     </RelativeLayout>
-    
-</RelativeLayout>
+</LinearLayout>

@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,13 +19,16 @@ import java.lang.String;
 
 public final class ActivityNoteEditorBinding implements ViewBinding {
   @NonNull
-  private final RelativeLayout rootView;
+  private final LinearLayout rootView;
 
   @NonNull
   public final Button btnAddPage;
 
   @NonNull
   public final Button btnDeletePage;
+
+  @NonNull
+  public final Button btnJumpPage;
 
   @NonNull
   public final Button btnNextPage;
@@ -53,23 +55,21 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
   public final DrawingCanvasView drawingCanvas;
 
   @NonNull
-  public final LinearLayout topToolbar;
-
-  @NonNull
   public final TextView txtBottomNotebookTitle;
 
   @NonNull
   public final TextView txtPageIndicator;
 
-  private ActivityNoteEditorBinding(@NonNull RelativeLayout rootView, @NonNull Button btnAddPage,
-      @NonNull Button btnDeletePage, @NonNull Button btnNextPage, @NonNull Button btnPrevPage,
-      @NonNull Button btnRedo, @NonNull Button btnSizesMenu, @NonNull Button btnToolsMenu,
-      @NonNull Button btnUndo, @NonNull Button btnZoomReset,
-      @NonNull DrawingCanvasView drawingCanvas, @NonNull LinearLayout topToolbar,
-      @NonNull TextView txtBottomNotebookTitle, @NonNull TextView txtPageIndicator) {
+  private ActivityNoteEditorBinding(@NonNull LinearLayout rootView, @NonNull Button btnAddPage,
+      @NonNull Button btnDeletePage, @NonNull Button btnJumpPage, @NonNull Button btnNextPage,
+      @NonNull Button btnPrevPage, @NonNull Button btnRedo, @NonNull Button btnSizesMenu,
+      @NonNull Button btnToolsMenu, @NonNull Button btnUndo, @NonNull Button btnZoomReset,
+      @NonNull DrawingCanvasView drawingCanvas, @NonNull TextView txtBottomNotebookTitle,
+      @NonNull TextView txtPageIndicator) {
     this.rootView = rootView;
     this.btnAddPage = btnAddPage;
     this.btnDeletePage = btnDeletePage;
+    this.btnJumpPage = btnJumpPage;
     this.btnNextPage = btnNextPage;
     this.btnPrevPage = btnPrevPage;
     this.btnRedo = btnRedo;
@@ -78,14 +78,13 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
     this.btnUndo = btnUndo;
     this.btnZoomReset = btnZoomReset;
     this.drawingCanvas = drawingCanvas;
-    this.topToolbar = topToolbar;
     this.txtBottomNotebookTitle = txtBottomNotebookTitle;
     this.txtPageIndicator = txtPageIndicator;
   }
 
   @Override
   @NonNull
-  public RelativeLayout getRoot() {
+  public LinearLayout getRoot() {
     return rootView;
   }
 
@@ -119,6 +118,12 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
       id = R.id.btnDeletePage;
       Button btnDeletePage = ViewBindings.findChildViewById(rootView, id);
       if (btnDeletePage == null) {
+        break missingId;
+      }
+
+      id = R.id.btnJumpPage;
+      Button btnJumpPage = ViewBindings.findChildViewById(rootView, id);
+      if (btnJumpPage == null) {
         break missingId;
       }
 
@@ -170,12 +175,6 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.topToolbar;
-      LinearLayout topToolbar = ViewBindings.findChildViewById(rootView, id);
-      if (topToolbar == null) {
-        break missingId;
-      }
-
       id = R.id.txtBottomNotebookTitle;
       TextView txtBottomNotebookTitle = ViewBindings.findChildViewById(rootView, id);
       if (txtBottomNotebookTitle == null) {
@@ -188,9 +187,9 @@ public final class ActivityNoteEditorBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityNoteEditorBinding((RelativeLayout) rootView, btnAddPage, btnDeletePage,
-          btnNextPage, btnPrevPage, btnRedo, btnSizesMenu, btnToolsMenu, btnUndo, btnZoomReset,
-          drawingCanvas, topToolbar, txtBottomNotebookTitle, txtPageIndicator);
+      return new ActivityNoteEditorBinding((LinearLayout) rootView, btnAddPage, btnDeletePage,
+          btnJumpPage, btnNextPage, btnPrevPage, btnRedo, btnSizesMenu, btnToolsMenu, btnUndo,
+          btnZoomReset, drawingCanvas, txtBottomNotebookTitle, txtPageIndicator);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
