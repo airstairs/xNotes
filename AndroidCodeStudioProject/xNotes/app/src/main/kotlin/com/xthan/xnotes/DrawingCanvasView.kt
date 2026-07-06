@@ -45,14 +45,11 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     fun resetZoomAndPan() {
         if (width == 0 || height == 0) return
-
         val scaleX = width.toFloat() / paperWidth
         val scaleY = height.toFloat() / paperHeight
         scaleFactor = Math.min(scaleX, scaleY)
-        
         translateX = (width.toFloat() - (paperWidth * scaleFactor)) / 2f
         translateY = (height.toFloat() - (paperHeight * scaleFactor)) / 2f
-        
         invalidate()
     }
 
@@ -85,25 +82,16 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         canvas.drawColor(Color.parseColor("#E0E0E0"))
-
         canvas.save()
         transformMatrix.reset()
         transformMatrix.postScale(scaleFactor, scaleFactor)
         transformMatrix.postTranslate(translateX, translateY)
         canvas.concat(transformMatrix)
 
-        val paperPaint = Paint().apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
-        }
+        val paperPaint = Paint().apply { color = Color.WHITE; style = Paint.Style.FILL }
         canvas.drawRect(0f, 0f, paperWidth, paperHeight, paperPaint)
 
-        val borderPaint = Paint().apply {
-            color = Color.parseColor("#9E9E9E")
-            style = Paint.Style.STROKE
-            strokeWidth = 2f
-            isAntiAlias = true
-        }
+        val borderPaint = Paint().apply { color = Color.parseColor("#9E9E9E"); style = Paint.Style.STROKE; strokeWidth = 2f; isAntiAlias = true }
         canvas.drawRect(0f, 0f, paperWidth, paperHeight, borderPaint)
 
         for (stroke in pages[currentPageIndex]) {
@@ -118,41 +106,6 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             canvas.drawPath(currentPath, currentPaint)
         }
         canvas.restore()
-
-        drawViewportScrollbars(canvas)
-    }
-
-    private fun drawViewportScrollbars(canvas: Canvas) {
-        val viewW = width.toFloat()
-        val viewH = height.toFloat()
-        val docW = paperWidth * scaleFactor
-        val docH = paperHeight * scaleFactor
-
-        val scrollPaint = Paint().apply {
-            color = Color.parseColor("#80000000")
-            style = Paint.Style.FILL
-            isAntiAlias = true
-        }
-        val barThickness = 8f
-        val padding = 4f
-
-        if (docW > viewW) {
-            val sizeRatio = viewW / docW
-            val barWidth = viewW * sizeRatio
-            val maxScrollable = docW - viewW
-            val scrolledRatio = if (maxScrollable > 0) -translateX / maxScrollable else 0f
-            val barLeft = padding + (scrolledRatio * (viewW - barWidth - (padding * 2)))
-            canvas.drawRoundRect(barLeft, viewH - barThickness - padding, barLeft + barWidth, viewH - padding, 4f, 4f, scrollPaint)
-        }
-
-        if (docH > viewH) {
-            val sizeRatio = viewH / docH
-            val barHeight = viewH * sizeRatio
-            val maxScrollable = docH - viewH
-            val scrolledRatio = if (maxScrollable > 0) -translateY / maxScrollable else 0f
-            val barTop = padding + (scrolledRatio * (viewH - barHeight - (padding * 2)))
-            canvas.drawRoundRect(viewW - barThickness - padding, barTop, viewW - padding, barTop + barHeight, 4f, 4f, scrollPaint)
-        }
     }
 
     private fun strokeToPath(pointsStr: String): Path {
@@ -182,43 +135,19 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(event)
-
-        val pointerCount = event.pointerCount
-
-        if (pointerCount > 1) {
+        if (event.pointerCount > 1) {
             isPanning = true
             currentPoints.setLength(0)
-            
-            val action = event.actionMasked
-            if (action == MotionEvent.ACTION_MOVE && pointerCount == 2) {
-                if (!scaleDetector.isInProgress) {
-                    val x = event.getX(0)
-                    val y = event.getY(0)
-                    translateX += x - lastTouchX
-                    translateY += y - lastTouchY
-                    invalidate()
-                    lastTouchX = x
-                    lastTouchY = y
-                }
-            } else if (action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_POINTER_UP) {
-                lastTouchX = event.getX(0)
-                lastTouchY = event.getY(0)
+            if (event.action == MotionEvent.ACTION_MOVE) {
+                val x = event.getX(0); val y = event.getY(0)
+                translateX += x - lastTouchX; translateY += y - lastTouchY
+                invalidate(); lastTouchX = x; lastTouchY = y
             }
             return true
         }
 
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            isPanning = false
-            lastTouchX = event.x
-            lastTouchY = event.y
-        }
-
-        if (isPanning) {
-            if (event.action == MotionEvent.ACTION_UP) {
-                isPanning = false
-            }
-            return true
-        }
+        if (event.action == MotionEvent.ACTION_DOWN) { isPanning = false; lastTouchX = event.x; lastTouchY = event.y }
+        if (isPanning) { if (event.action == MotionEvent.ACTION_UP) isPanning = false; return true }
 
         transformMatrix.reset()
         transformMatrix.postScale(scaleFactor, scaleFactor)
@@ -227,9 +156,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
 
         val pts = floatArrayOf(event.x, event.y)
         inverseMatrix.mapPoints(pts)
-        val mappedX = pts[0]
-        val mappedY = pts[1]
-
+        val mappedX = pts[0]; val mappedY = pts[1]
         val isInsidePaper = mappedX in 0f..paperWidth && mappedY in 0f..paperHeight
 
         if (isEraserMode) {
@@ -239,32 +166,19 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                 while (iterator.hasNext()) {
                     val stroke = iterator.next()
                     if (isPointNearStroke(mappedX, mappedY, stroke.pointsStr, stroke.width + 20f)) {
+                        redoPages[currentPageIndex].add(stroke) // Added to redo stack
                         iterator.remove()
                         modified = true
                     }
                 }
-                if (modified) {
-                    invalidate()
-                    onStrokeAdded?.invoke()
-                }
+                if (modified) { invalidate(); onStrokeAdded?.invoke() }
             }
             return true
         }
 
         when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                if (isInsidePaper) {
-                    currentPoints.setLength(0)
-                    currentPoints.append("$mappedX,$mappedY")
-                    invalidate()
-                }
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (currentPoints.isNotEmpty() && isInsidePaper) {
-                    currentPoints.append(",$mappedX,$mappedY")
-                    invalidate()
-                }
-            }
+            MotionEvent.ACTION_DOWN -> { if (isInsidePaper) { currentPoints.setLength(0); currentPoints.append("$mappedX,$mappedY"); invalidate() } }
+            MotionEvent.ACTION_MOVE -> { if (currentPoints.isNotEmpty() && isInsidePaper) { currentPoints.append(",$mappedX,$mappedY"); invalidate() } }
             MotionEvent.ACTION_UP -> {
                 if (currentPoints.isNotEmpty()) {
                     pages[currentPageIndex].add(StrokeData(currentPoints.toString(), currentPenColor, currentPenSize))
@@ -282,8 +196,7 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         val tokens = pointsStr.split(",")
         var i = 0
         while (i < tokens.size - 1) {
-            val px = tokens[i].toFloat()
-            val py = tokens[i+1].toFloat()
+            val px = tokens[i].toFloat(); val py = tokens[i+1].toFloat()
             val distance = Math.sqrt(((x - px) * (x - px) + (y - py) * (y - py)).toDouble()).toFloat()
             if (distance < threshold) return true
             i += 2
@@ -291,31 +204,9 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
         return false
     }
 
-    fun addPage() {
-        pages.add(mutableListOf())
-        redoPages.add(mutableListOf())
-        currentPageIndex = pages.size - 1
-        resetZoomAndPan()
-    }
-
-    fun nextPage(): Boolean {
-        if (currentPageIndex < pages.size - 1) {
-            currentPageIndex++
-            resetZoomAndPan()
-            return true
-        }
-        return false
-    }
-
-    fun prevPage(): Boolean {
-        if (currentPageIndex > 0) {
-            currentPageIndex--
-            resetZoomAndPan()
-            return true
-        }
-        return false
-    }
-
+    fun addPage() { pages.add(mutableListOf()); redoPages.add(mutableListOf()); currentPageIndex = pages.size - 1; resetZoomAndPan() }
+    fun nextPage(): Boolean { if (currentPageIndex < pages.size - 1) { currentPageIndex++; resetZoomAndPan(); return true }; return false }
+    fun prevPage(): Boolean { if (currentPageIndex > 0) { currentPageIndex--; resetZoomAndPan(); return true }; return false }
     fun getPageCount(): Int = pages.size
 
     fun toSerializedString(): String {
@@ -332,15 +223,8 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
     }
 
     fun loadFromSerializedString(data: String) {
-        pages.clear()
-        redoPages.clear()
-        if (data.isEmpty()) {
-            pages.add(mutableListOf())
-            redoPages.add(mutableListOf())
-            currentPageIndex = 0
-            resetZoomAndPan()
-            return
-        }
+        pages.clear(); redoPages.clear()
+        if (data.isEmpty()) { pages.add(mutableListOf()); redoPages.add(mutableListOf()); currentPageIndex = 0; resetZoomAndPan(); return }
         val pTokens = data.split(";")
         for (pToken in pTokens) {
             val pageList = mutableListOf<StrokeData>()
@@ -349,17 +233,13 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
                 for (sToken in sTokens) {
                     if (sToken.isNotEmpty()) {
                         val parts = sToken.split(":", limit = 3)
-                        if (parts.size == 3) {
-                            pageList.add(StrokeData(parts[2], parts[0].toInt(), parts[1].toFloat()))
-                        }
+                        if (parts.size == 3) pageList.add(StrokeData(parts[2], parts[0].toInt(), parts[1].toFloat()))
                     }
                 }
             }
-            pages.add(pageList)
-            redoPages.add(mutableListOf())
+            pages.add(pageList); redoPages.add(mutableListOf())
         }
-        currentPageIndex = 0
-        resetZoomAndPan()
+        currentPageIndex = 0; resetZoomAndPan()
     }
 
     private inner class ScaleListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -367,14 +247,10 @@ class DrawingCanvasView(context: Context, attrs: AttributeSet) : View(context, a
             val oldScale = scaleFactor
             scaleFactor *= detector.scaleFactor
             scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 15.0f))
-
-            val focusX = detector.focusX
-            val focusY = detector.focusY
+            val focusX = detector.focusX; val focusY = detector.focusY
             translateX = focusX - (focusX - translateX) * (scaleFactor / oldScale)
             translateY = focusY - (focusY - translateY) * (scaleFactor / oldScale)
-
-            invalidate()
-            return true
+            invalidate(); return true
         }
     }
 }

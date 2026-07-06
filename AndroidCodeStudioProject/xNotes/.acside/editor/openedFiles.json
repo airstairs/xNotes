@@ -1,20 +1,20 @@
 {
   "allFiles": [
     {
-      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/NoteEditorActivity.kt",
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/DrawingCanvasView.kt",
       "selection": {
         "end": {
           "column": 1,
-          "index": 15321,
-          "line": 400
+          "index": 10215,
+          "line": 255
         },
         "start": {
           "column": 1,
-          "index": 15321,
-          "line": 400
+          "index": 10215,
+          "line": 255
         }
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/NoteEditorActivity.kt"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/DrawingCanvasView.kt"
 }
