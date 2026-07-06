@@ -1,0 +1,35 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotesx/app/src/main/res/layout/activity_note_editor.xml",
+      "selection": {
+        "end": {
+          "column": 14,
+          "index": 2343,
+          "line": 66
+        },
+        "start": {
+          "column": 9,
+          "index": 2338,
+          "line": 66
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotesx/app/src/main/res/layout/activity_main.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotesx/app/src/main/res/layout/activity_main.xml"
+}
