@@ -14,7 +14,22 @@
           "line": 255
         }
       }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/MainActivity.kt",
+      "selection": {
+        "end": {
+          "column": 40,
+          "index": 14120,
+          "line": 341
+        },
+        "start": {
+          "column": 40,
+          "index": 14120,
+          "line": 341
+        }
+      }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/DrawingCanvasView.kt"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/MainActivity.kt"
 }

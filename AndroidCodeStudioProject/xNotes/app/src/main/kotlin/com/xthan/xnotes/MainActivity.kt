@@ -339,7 +339,7 @@ class MainActivity : AppCompatActivity() {
         }
         val cbSelectAll = CheckBox(context)
         val tvSelectAll = TextView(context).apply { 
-            text = "Select All Notes"
+            text = "Select All Notebooks"
             textSize = 18f
             setPadding(10, 0, 0, 0)
         }
