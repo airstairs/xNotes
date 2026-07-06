@@ -4,62 +4,17 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/build.gradle",
       "selection": {
         "end": {
-          "column": 1,
-          "index": 1000,
-          "line": 40
+          "column": 21,
+          "index": 390,
+          "line": 14
         },
         "start": {
-          "column": 1,
-          "index": 1000,
-          "line": 40
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/NoteEditorActivity.kt",
-      "selection": {
-        "end": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        },
-        "start": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/DrawingCanvasView.kt",
-      "selection": {
-        "end": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        },
-        "start": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        }
-      }
-    },
-    {
-      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/layout/activity_note_editor.xml",
-      "selection": {
-        "end": {
-          "column": 0,
-          "index": 0,
-          "line": 0
-        },
-        "start": {
-          "column": 0,
-          "index": 0,
-          "line": 0
+          "column": 21,
+          "index": 390,
+          "line": 14
         }
       }
     }
   ],
-  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/NoteEditorActivity.kt"
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/build.gradle"
 }
