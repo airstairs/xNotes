@@ -20,3 +20,4 @@
 
 
 
+tip: redo will replace accidentally erased strokes
