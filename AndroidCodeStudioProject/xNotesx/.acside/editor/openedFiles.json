@@ -1,17 +1,17 @@
 {
   "allFiles": [
     {
-      "file": "/storage/emulated/0/AndroidIDEProjects/xNotesx/app/src/main/res/layout/activity_note_editor.xml",
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotesx/app/src/main/kotlin/com/xthan/xnotesx/NoteEditorActivity.kt",
       "selection": {
         "end": {
-          "column": 14,
-          "index": 2343,
-          "line": 66
+          "column": 26,
+          "index": 12362,
+          "line": 242
         },
         "start": {
-          "column": 9,
-          "index": 2338,
-          "line": 66
+          "column": 26,
+          "index": 12362,
+          "line": 242
         }
       }
     },
@@ -19,14 +19,14 @@
       "file": "/storage/emulated/0/AndroidIDEProjects/xNotesx/app/src/main/res/layout/activity_main.xml",
       "selection": {
         "end": {
-          "column": 0,
-          "index": 0,
-          "line": 0
+          "column": 29,
+          "index": 389,
+          "line": 10
         },
         "start": {
-          "column": 0,
-          "index": 0,
-          "line": 0
+          "column": 29,
+          "index": 389,
+          "line": 10
         }
       }
     }

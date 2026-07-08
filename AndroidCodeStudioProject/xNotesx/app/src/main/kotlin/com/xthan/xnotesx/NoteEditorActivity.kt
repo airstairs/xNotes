@@ -240,7 +240,7 @@ class NoteEditorActivity : AppCompatActivity() {
         val circlePaint = Paint().apply { this.color = Color.WHITE; style = Paint.Style.FILL; isAntiAlias = true }
         canvas.drawCircle(size / 2f, size / 2f, size * 0.3f, circlePaint)
         val textPaint = Paint().apply { this.color = Color.BLACK; textSize = size * 0.3f * 1.3f; isAntiAlias = true; typeface = Typeface.DEFAULT_BOLD; textAlign = Paint.Align.CENTER }
-        canvas.drawText("x", size / 2f, (size / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f), textPaint)
+        canvas.drawText("_x_", size / 2f, (size / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f), textPaint)
         return bitmap
     }
 
