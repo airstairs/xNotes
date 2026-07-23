@@ -1,0 +1,80 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/layout/widget_item_notebook.xml",
+      "selection": {
+        "end": {
+          "column": 36,
+          "index": 1351,
+          "line": 37
+        },
+        "start": {
+          "column": 36,
+          "index": 1351,
+          "line": 37
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/WidgetService.java",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 4468,
+          "line": 129
+        },
+        "start": {
+          "column": 1,
+          "index": 4468,
+          "line": 129
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/layout/widget_dashboard.xml",
+      "selection": {
+        "end": {
+          "column": 38,
+          "index": 1807,
+          "line": 51
+        },
+        "start": {
+          "column": 4,
+          "index": 1484,
+          "line": 43
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/WidgetActionActivity.kt",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/DashboardWidgetProvider.kt",
+      "selection": {
+        "end": {
+          "column": 14,
+          "index": 2603,
+          "line": 52
+        },
+        "start": {
+          "column": 14,
+          "index": 2603,
+          "line": 52
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/DashboardWidgetProvider.kt"
+}

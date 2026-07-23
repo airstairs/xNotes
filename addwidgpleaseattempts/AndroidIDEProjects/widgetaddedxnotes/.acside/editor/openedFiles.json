@@ -1,0 +1,95 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/xml/widget_dashboard_info.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/layout/widget_dashboard.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 1482,
+          "line": 45
+        },
+        "start": {
+          "column": 0,
+          "index": 1482,
+          "line": 45
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/drawable/widget_background_semi_transparent.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/DashboardWidgetProvider.kt",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 2890,
+          "line": 59
+        },
+        "start": {
+          "column": 1,
+          "index": 2890,
+          "line": 59
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/kotlin/com/xthan/xnotes/WidgetActionActivity.kt",
+      "selection": {
+        "end": {
+          "column": 1,
+          "index": 3080,
+          "line": 80
+        },
+        "start": {
+          "column": 1,
+          "index": 3080,
+          "line": 80
+        }
+      }
+    },
+    {
+      "file": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/AndroidManifest.xml",
+      "selection": {
+        "end": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        },
+        "start": {
+          "column": 0,
+          "index": 0,
+          "line": 0
+        }
+      }
+    }
+  ],
+  "selectedFile": "/storage/emulated/0/AndroidIDEProjects/xNotes/app/src/main/res/layout/widget_dashboard.xml"
+}
